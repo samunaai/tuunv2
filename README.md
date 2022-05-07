@@ -42,7 +42,7 @@ The Argo Workflows [quickstart page](https://github.com/argoproj/argo-workflows/
 
 - `argo version`: When you download a version of argo from [the releases](https://github.com/argoproj/argo-workflows/releases), the output of this command should look like the below:
 
-    > <img width="550" alt="argo" src="https://user-images.githubusercontent.com/22077758/167265131-edb13cd3-2e12-43a5-b561-0da8feaf3136.png">
+    > <img width="500" alt="argo" src="https://user-images.githubusercontent.com/22077758/167265131-edb13cd3-2e12-43a5-b561-0da8feaf3136.png">
 
 
 ## 4. Katib
