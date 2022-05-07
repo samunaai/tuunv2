@@ -6,8 +6,7 @@ Our consists of 4 key architectural components, which need to be put together in
 3. Argo (specifically Argo Workflows): This is used for executing pipelines, it's core advantage being its inbuilt support for memoisation of experimental results 
 4. Katib: This serves as an experiment scheduler. In Katib you generally assign a range of parameters, and Katib will choose the best parameters to optimise your results - we extend its functionality by incorporating it into a pipeline tuning setting.
  
-<img width="609" alt="stack" src="https://user-images.githubusercontent.com/22077758/167262999-decb132d-2bbb-410e-8806-b3bf50f0e420.PNG">
-
+    > <img width="500" alt="stack" src="https://user-images.githubusercontent.com/22077758/167271375-e9b31117-f699-4ee5-a44c-c86df9e8ec7b.png">
 
 The diagram below shows a flow chart explaining our stack
 
@@ -15,6 +14,8 @@ The diagram below shows a flow chart explaining our stack
 Docker can installed using the [official instructions](https://docs.docker.com/engine/install/ubuntu/). 
 - nvidia-docker2 is also required. It can be installed using official [nvidia instruction](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html)
 - Your goal should be to run an official nvidia docker container with a simple `nvidia-smi` command. For example, `sudo docker run --rm --gpus all nvidia/cuda:11.0.3-base-ubuntu20.04 nvidia-smi` should display the output of `nvidia-smi`, run from within the docker container for cuda version 11.0.3. More versions can be found at [nvidia/cuda on docker hub](https://hub.docker.com/r/nvidia/cuda).
+- If installed correctly, your output will look like this:
+    > <img width="580" alt="stack" src="https://user-images.githubusercontent.com/22077758/167264785-3fea4514-103b-4efd-a600-7408afdf72e2.png">
 
 
 ## 2. Kubernetes
