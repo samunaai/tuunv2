@@ -36,6 +36,11 @@ Points to note when setting up microk8s:
 
     > <img width="580" alt="stack" src="https://user-images.githubusercontent.com/22077758/167264785-3fea4514-103b-4efd-a600-7408afdf72e2.png">
  
+Some useful starter commands in kubernetes are:
+- `kubectl get pods`: list all running pods
+- `kubectl describe pod pod-name`: shows all statistics of a particular pod, which is very useful for debugging
+- `kubectl logs pod-name`: shows the _outputs_ produced from running a container
+
 
 ## 3. Argo
 
