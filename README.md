@@ -34,5 +34,10 @@ GPU support for kubernetes needs to be [enabled separately](https://kubernetes.i
 
     > <img width="800" alt="argo" src="https://user-images.githubusercontent.com/22077758/167264108-3b8f26ee-1be5-4362-a6c2-39e0a5ab09ce.png">
 
+- `kubectl -n argo port-forward deployment/argo-server 2746:2746` : this will serve the argo dashboard on port 2746. If you are running the code on a remote server, make sure that you are port forwarding from the server to your computer i.e by adding  `-L 2746:localhost:2746` to your ssh command. The Argo dashboard looks like the below.
+
+    > <img width="800" alt="argo" src="https://user-images.githubusercontent.com/22077758/167264108-3b8f26ee-1be5-4362-a6c2-39e0a5ab09ce.png">
+
+
 
 ## 4. Katib
