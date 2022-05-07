@@ -52,3 +52,6 @@ The Argo project has several tools, but we use mainly Argo Workflows. Argo Workf
 
 
 ## 4. Katib
+
+- `kubectl get ConfigMap -n argo workflow-controller-configmap -o yaml | grep containerRuntimeExecutor`
+- 
