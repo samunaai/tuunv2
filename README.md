@@ -7,7 +7,10 @@ Our consists of 4 key architectural components, which need to be put together in
 4. Katib: This serves as an experiment scheduler. In Katib you generally assign a range of parameters, and Katib will choose the best parameters to optimise your results - we extend its functionality by incorporating it into a pipeline tuning setting.
  
 
-The diagram below shows a flow chart explaining our stack
+The diagram below shows a flow chart explaining our stack:
+
+<img width="609" alt="stack" src="https://user-images.githubusercontent.com/22077758/167271638-40539079-27dc-4c6f-b8ee-4cb5fdd3268a.PNG">
+
 
 ## 1. Docker
 Docker can installed using the [official instructions](https://docs.docker.com/engine/install/ubuntu/). 
