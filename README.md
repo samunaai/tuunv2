@@ -15,4 +15,8 @@ The diagram below shows a flow chart explaining our stack
 
 ## 2. Kubernetes
 ## 3. Argo
+
+<img width="500" alt="argo" src="https://user-images.githubusercontent.com/22077758/167263947-e1d50cf9-68ae-4bb4-8110-8faec7c40005.PNG">
+
+
 ## 4. Katib
