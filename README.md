@@ -25,7 +25,7 @@ Most kubernetes commands can be run with microk8s - you just need to add the key
 GPU support for kubernetes needs to be [enabled separately](https://kubernetes.io/docs/tasks/manage-gpus/scheduling-gpus/). Likewise for microk8s. For microk8s, you need to work with precise software versions for GPU to work - we tested using microk8s 1.22, on Ubuntu 18.04. The nvidia drive was 470.103.01, with cuda 11.4
 
 
-Note on using microk8s:
+Points to note when setting up microk8s:
 - `microk8s enable dns storage`: make sure to run these commands while installing microk8s as per the docs linked above. Otherwise argo will not install.
 - `microk8s enable gpu`: This command enables gpu in microk8s. If run correctly, a number of pods under the namesapce `gpu-operator-resources` will be started and their status will be either "running" or "completed", after just a few minutes. Furthermore, when we run `microk8s kubectl describe node`, "nvidia.com/gpu" will be listed under the allocated resources, as shown below:
 
