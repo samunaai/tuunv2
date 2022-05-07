@@ -12,7 +12,7 @@ The diagram below shows a flow chart explaining our stack
 ## 1. Docker
 Docker can installed using the [official instructions](https://docs.docker.com/engine/install/ubuntu/). 
 - nvidia-docker2 is also required. It can be installed using official [nvidia instruction](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html)
-- Your goal should be to run an official nvidia docker container with a simple `nvidia-smi` command. For example, `sudo docker run --rm --gpus all nvidia/cuda:11.0.3-base-ubuntu20.04 nvidia-smi` should display the output of `nvidia-smi`, run from within the docker container for cuda version 11.0.3. More versions can be found at [nvidia/cuda on docker hub](https://hub.docker.com/r/nvidia/cuda).
+- Your goal should be to run an official nvidia docker container with a simple `nvidia-smi` command. For example, `sudo docker run --rm --gpus all nvidia/cuda:11.0.3-base-ubuntu20.04 nvidia-smi` should display the output of `nvidia-smi`, run from within the docker container for cuda version 11.0.3. More versions can be found at [nvidia/cuda on docker hub](https://hub.docker.com/r/nvidia/cuda)
 - If installed correctly, your output will look like this (driver versions may differ):
 
     > <img width="400" alt="stack" src="https://user-images.githubusercontent.com/22077758/167271375-e9b31117-f699-4ee5-a44c-c86df9e8ec7b.png">
