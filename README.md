@@ -30,6 +30,8 @@ GPU support for kubernetes needs to be [enabled separately](https://kubernetes.i
 
 ## 3. Argo
 
+The Argo Workflows [quickstart page](https://github.com/argoproj/argo-workflows/blob/master/docs/quick-start.md) provides useful steps to get argo workflows working. Here are some helpful notes to provide you with additional installation advice:
+
 - `kubectl create ns argo` && `kubectl apply -n argo -f https://raw.githubusercontent.com/argoproj/argo-workflows/master/manifests/quick-start-postgres.yaml` :  If Argo server is running correctly, when we run `kubectl get pods -A`, there should be 4 pods running under the namespaces argo. It is okay if these pods restart a few times, but they should all be up and running within ~2-5 minutes. Otherwise there may be an error.
 
     > <img width="800" alt="argo" src="https://user-images.githubusercontent.com/22077758/167264108-3b8f26ee-1be5-4362-a6c2-39e0a5ab09ce.png">
@@ -38,6 +40,9 @@ GPU support for kubernetes needs to be [enabled separately](https://kubernetes.i
 
     > <img width="800" alt="argo" src="https://user-images.githubusercontent.com/22077758/167264108-3b8f26ee-1be5-4362-a6c2-39e0a5ab09ce.png">
 
+- `argo version`: When you download a version of argo from [the releases](https://github.com/argoproj/argo-workflows/releases), the output of this command should look like the below:
+
+    > <img width="800" alt="argo" src="https://user-images.githubusercontent.com/22077758/167265131-edb13cd3-2e12-43a5-b561-0da8feaf3136.png">
 
 
 ## 4. Katib
