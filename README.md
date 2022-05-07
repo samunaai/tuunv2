@@ -11,8 +11,8 @@ Our consists of 4 key architectural components, which need to be put together in
 
 The diagram below shows a flow chart explaining our stack
 
-# Docker
+## 1. Docker
 
-# Kubernetes
-# Argo
-# Katib
+## 2. Kubernetes
+## 3. Argo
+## 4. Katib
