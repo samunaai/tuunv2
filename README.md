@@ -13,8 +13,9 @@ The diagram below shows a flow chart explaining our stack
 
 ## 1. Docker
 Docker can installed using the [official instructions](https://docs.docker.com/engine/install/ubuntu/). 
-- nvidia-docker2 is also required. It can be installed using nvidia's [official instruction](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html)
-- 
+- nvidia-docker2 is also required. It can be installed using official [nvidia instruction](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html)
+- Your goal should be to run an official nvidia docker container with a simple `nvidia-smi` command. For example, `sudo docker run --rm --gpus all nvidia/cuda:11.0.3-base-ubuntu20.04 nvidia-smi` should display the output of `nvidia-smi`, run from within the docker container for cuda version 11.0.3. More versions can be found at [nvidia/cuda on docker hub](https://hub.docker.com/r/nvidia/cuda).
+
 
 ## 2. Kubernetes
 We recommend 2 readily available option for Kubernetes usage:
