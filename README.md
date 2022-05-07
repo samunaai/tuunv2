@@ -12,6 +12,9 @@ Our consists of 4 key architectural components, which need to be put together in
 The diagram below shows a flow chart explaining our stack
 
 ## 1. Docker
+Docker can installed using the [official instructions](https://docs.docker.com/engine/install/ubuntu/). 
+- nvidia-docker2 is also required. It can be installed using nvidia's [official instruction](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html)
+- 
 
 ## 2. Kubernetes
 We recommend 2 readily available option for Kubernetes usage:
