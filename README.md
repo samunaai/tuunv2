@@ -9,7 +9,7 @@ Our consists of 4 key architectural components, which need to be put together in
 
 The diagram below shows a flow chart explaining our stack:
 
-<img width="609" alt="stack" src="https://user-images.githubusercontent.com/22077758/167271638-40539079-27dc-4c6f-b8ee-4cb5fdd3268a.PNG">
+<img width="600" alt="stack" src="https://user-images.githubusercontent.com/22077758/167271638-40539079-27dc-4c6f-b8ee-4cb5fdd3268a.PNG">
 
 
 ## 1. Docker
