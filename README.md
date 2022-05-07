@@ -1,6 +1,6 @@
 # Tuunv2
 
-Our consists of **4 ???** Key pieces which need to be put together in order to run:
+Our consists of 4 key architectural components, which need to be put together in order to run:
 1. Docker: This is used at the fundamental tool for running containers. Each docker container is a self-contained operating system
 2. Kubernetes/Microkubernetes (aka. K8s/microk8s): This serves as a resource provisioner to manage how computation resources are assigned to different container instances or collections, called pods
 3. Argo (specifically Argo Workflows): This is used for executing pipelines, it's core advantage being its inbuilt support for memoisation of experimental results 
