@@ -25,7 +25,7 @@ GPU support for kubernetes needs to be [enabled separately](https://kubernetes.i
 - `microk8s enable dns storage`: make sure to run these commands while installing microk8s as per the docs linked above. Otherwise argo will not install.
 - `microk8s enable gpu`: This command enables gpu in microk8s. If run correctly, a number of pods under the namesapce `gpu-operator-resources` will be started and their status will be either "running" or "completed", after just a few minutes. Furthermore, when we run `microk8s kubectl describe node`, "nvidia.com/gpu" will be listed under the allocated resources, as shown below:
 
-    > <img width="609" alt="stack" src="https://user-images.githubusercontent.com/22077758/167264785-3fea4514-103b-4efd-a600-7408afdf72e2.png">
+    > <img width="580" alt="stack" src="https://user-images.githubusercontent.com/22077758/167264785-3fea4514-103b-4efd-a600-7408afdf72e2.png">
  
 
 ## 3. Argo
@@ -42,7 +42,7 @@ The Argo Workflows [quickstart page](https://github.com/argoproj/argo-workflows/
 
 - `argo version`: When you download a version of argo from [the releases](https://github.com/argoproj/argo-workflows/releases), the output of this command should look like the below:
 
-    > <img width="600" alt="argo" src="https://user-images.githubusercontent.com/22077758/167265131-edb13cd3-2e12-43a5-b561-0da8feaf3136.png">
+    > <img width="550" alt="argo" src="https://user-images.githubusercontent.com/22077758/167265131-edb13cd3-2e12-43a5-b561-0da8feaf3136.png">
 
 
 ## 4. Katib
