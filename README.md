@@ -38,9 +38,8 @@ The Argo project has several tools, but we use mainly Argo Workflows. Argo Workf
 
 - `kubectl -n argo port-forward deployment/argo-server 2746:2746` : this will serve the argo dashboard on port 2746. If you are running the code on a remote server, make sure that you are port forwarding from the server to your computer i.e by adding  `-L 2746:localhost:2746` to your ssh command. The Argo dashboard looks like the below.
 
-    > <img width="700" alt="argo" src="https://user-images.githubusercontent.com/22077758/167265269-9f1fc5aa-8e78-4c67-a9d4-20ee1693ded7.png">
+    > <img width="650" alt="argo" src="https://user-images.githubusercontent.com/22077758/167265269-9f1fc5aa-8e78-4c67-a9d4-20ee1693ded7.png">
 
-![image](https://user-images.githubusercontent.com/22077758/167265269-9f1fc5aa-8e78-4c67-a9d4-20ee1693ded7.png)
 
 
 - `argo version`: When you download a version of argo from [the releases](https://github.com/argoproj/argo-workflows/releases), the output of this command should look like the below:
