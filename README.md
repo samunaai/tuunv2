@@ -16,9 +16,11 @@ The diagram below shows a flow chart explaining our stack
 ## 2. Kubernetes
 We recommend 2 readily available option for Kubernetes usage:
 
-a) Kubernetes: This is the full production ready version of Kubernetes. It be installed using the [official documentation](https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/).
+A. Kubernetes: This is the full production ready version of Kubernetes. It be installed using the [official documentation](https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/).
 
-b) Microk8s: microkubernetes is a lightweight version of kubernetes. It is not suitable in production, but is quick to setup for rapid prototyping following [official documentation](https://microk8s.io/docs/getting-started).
+B. Microk8s: microkubernetes is a lightweight version of kubernetes. It is not suitable in production, but is quick to setup for rapid prototyping following [official documentation](https://microk8s.io/docs/getting-started).
+
+Most kubernetes commands can be run with microk8s - you just need to add the keyword `microk8s` before the command. e.g `microk8s kubectl get nodes` should list the nodes in the cluster.
 
 GPU support for kubernetes needs to be [enabled separately](https://kubernetes.io/docs/tasks/manage-gpus/scheduling-gpus/). Likewise for microk8s. For microk8s, you need to work with precise software versions for GPU to work - we tested using microk8s 1.22, on Ubuntu 18.04. The nvidia drive was 470.103.01, with cuda 11.4
 
