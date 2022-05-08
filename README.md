@@ -80,6 +80,10 @@ The Argo project has several tools, but we use mainly Argo Workflows. Argo Workf
     > #check it works \
     > argo list
 
+- hello world: 
+    > If run correctly, when you submit the argo workflow you will get a whale in the logs;
+    > <img width="500" alt="argo" src="https://user-images.githubusercontent.com/22077758/167294039-c8acc4ee-00f0-4da6-8135-7c986b3dbbc8.png">
+
 ## 4. Katib
 
 Katib supports experiment scheduling with several types of kubernetes custom resources, inluding Argo Workflows. The official docs explain how to integrate Argo with Katib. Verify your default runtime executor using `kubectl get ConfigMap -n argo workflow-controller-configmap -o yaml | grep containerRuntimeExecutor`. If it is not `emissary`, you will need to change it to `emissary` using `kubectl patch ConfigMap -n argo workflow-controller-configmap --type='merge' -p='{"data":{"containerRuntimeExecutor":"emissary"}}'`
