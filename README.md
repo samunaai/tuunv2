@@ -64,6 +64,11 @@ The Argo project has several tools, but we use mainly Argo Workflows. Argo Workf
     > <img width="500" alt="argo" src="https://user-images.githubusercontent.com/22077758/167265131-edb13cd3-2e12-43a5-b561-0da8feaf3136.png">
 
 
+- `argo --help`: This command shows you the environment variables which need to be set for Argo to work properly. For instance, when using self-signed certificates (not for production), you must set `ARGO_INSECURE_SKIP_VERIFY=true` or argo will throw an error. Advice regarding this can be found in the argo dashboard "User" tab like this:
+
+    > <img width="500" alt="argo" src="https://user-images.githubusercontent.com/22077758/167291211-c1552957-3d90-49b8-8691-922b110d7a22.png">
+
+
 ## 4. Katib
 
 Katib supports experiment scheduling with several types of kubernetes custom resources, inluding Argo Workflows. The official docs explain how to integrate Argo with Katib. Verify your default runtime executor using `kubectl get ConfigMap -n argo workflow-controller-configmap -o yaml | grep containerRuntimeExecutor`. If it is not `emissary`, you will need to change it to `emissary` using `kubectl patch ConfigMap -n argo workflow-controller-configmap --type='merge' -p='{"data":{"containerRuntimeExecutor":"emissary"}}'`
