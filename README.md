@@ -64,8 +64,9 @@ The Argo project has several tools, but we use mainly Argo Workflows. Argo Workf
     > <img width="500" alt="argo" src="https://user-images.githubusercontent.com/22077758/167265131-edb13cd3-2e12-43a5-b561-0da8feaf3136.png">
 
 
-- Environment variables:  Setting environment variables such as `ARGO_INSECURE_SKIP_VERIFY` is required for proper permissions in workflow submission. `argo --help` provides more information on these variables, as can be see in the `User` tab to the left of the Argo dashboard. Several environment variables can be set in one-shot by making adjustments to your bashrc file like below
+- Environment variables:  Setting environment variables such as `ARGO_INSECURE_SKIP_VERIFY` is required for proper permissions in workflow submission. `argo --help` provides more information on these variables, as can be see in the `User` tab to the left of the Argo dashboard (`localhost:2746/userinfo`). Several environment variables can be set in one-shot by making adjustments to your bashrc file like below:
 
+    > \# recommended in User panel
     > cat >> ~/.bashrc <<EOL \
     > export ARGO_SERVER='127.0.0.1:2746' \
     > export ARGO_HTTP1=true  \
@@ -75,6 +76,9 @@ The Argo project has several tools, but we use mainly Argo Workflows. Argo Workf
     > export ARGO_NAMESPACE=argo \
     > export ARGO_INSECURE_SKIP_VERIFY=true \
     > EOL 
+    > 
+    > #check it works
+    > argo list
 
 ## 4. Katib
 
