@@ -77,7 +77,7 @@ The Argo project has several tools, but we use mainly Argo Workflows. Argo Workf
     > export ARGO_INSECURE_SKIP_VERIFY=true \
     > EOL 
     > 
-    > #check it works
+    > #check it works \
     > argo list
 
 ## 4. Katib
