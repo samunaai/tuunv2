@@ -66,9 +66,7 @@ The Argo project has several tools, but we use mainly Argo Workflows. Argo Workf
 
 - Environment variables:  Setting environment variables such as `ARGO_INSECURE_SKIP_VERIFY` is required for proper permissions in workflow submission. `argo --help` provides more information on these variables, as can be see in the `User` tab to the left of the Argo dashboard. Several environment variables can be set in one-shot by making adjustments to your bashrc file like below
 
-    > # link with server
-    > # recommended on user panel in interface
-    > cat >> ~/.bashrc <<EOL
+    > cat >> ~/.bashrc <<EOL \
     > export ARGO_SERVER='127.0.0.1:2746' 
     > export ARGO_HTTP1=true  
     > export ARGO_SECURE=true
