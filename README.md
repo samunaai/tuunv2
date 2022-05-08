@@ -85,7 +85,7 @@ The Argo project has several tools, but we use mainly Argo Workflows. Argo Workf
     
     > <img width="500" alt="argo" src="https://user-images.githubusercontent.com/22077758/167294138-ac6ce6cd-a650-4dba-bc88-5e5132a90e03.png"> 
     
-    > <img width="500" alt="argo" src="https://user-images.githubusercontent.com/22077758/167294039-c8acc4ee-00f0-4da6-8135-7c986b3dbbc8.png">
+    > <img width="600" alt="argo" src="https://user-images.githubusercontent.com/22077758/167294039-c8acc4ee-00f0-4da6-8135-7c986b3dbbc8.png">
 
 ## 4. Katib
 
