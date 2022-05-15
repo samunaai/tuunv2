@@ -13,6 +13,6 @@ spec:
   templates:
   - name: whalesay
     container:
-      image: docker/whalesay:latest
-      command: [cowsay]
-      args: ["hello world"]
+      image: cyr1ll/cv-pipeline-example
+      command: [nvidia-smi]
+      args: []
