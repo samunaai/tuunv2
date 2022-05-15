@@ -1,6 +1,9 @@
 random_seed: 80
+debug: false
 
-#preprocess
+# preprocessing
+# Data Preprocessing 
+
 data_path: "../../../datasets/understanding_cloud_organization"
 image_out_dir: "../artifacts/images_out"
 masks_out_dir: "../artifacts/masks_out"
@@ -8,6 +11,7 @@ resize_height: 320
 resize_width: 640
 device: gpu
 batch_size: 32
+# 
 
 #train
 image_in_dir: "../artifacts/images_out"

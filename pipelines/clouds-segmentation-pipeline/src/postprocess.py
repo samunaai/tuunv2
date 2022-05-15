@@ -42,7 +42,7 @@ def postprocess(cfg: DictConfig):
         id_mask_count["img_id"].values,
         random_state=42,
         stratify=id_mask_count["count"],
-        test_size=0.1,
+        test_size=0.25,
     )
     preprocessing_fn = smp.encoders.get_preprocessing_fn(cfg.encoder, "imagenet")
     valid_dataset = CloudDataset(

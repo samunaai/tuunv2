@@ -9,9 +9,11 @@ from nvidia import dali
 from nvidia.dali import pipeline_def
 from omegaconf import DictConfig
 from tqdm import tqdm
+import time
 
 
 def preprocess(cfg: DictConfig):
+    time_start = time.time()
     output_directory = os.path.join(get_original_cwd(), cfg.image_out_dir)
     if not os.path.exists(output_directory):
         os.mkdir(output_directory)
@@ -84,8 +86,9 @@ def preprocess(cfg: DictConfig):
             os.path.join(masks_out_dir, name),
             resized_arr,
         )
-    print(f"Masks have been resized and saved to {cfg.masks_out_dir}!")
-
+    print(f"Masks have been resized and saved to {masks_out_dir}!")
+    time_end = time.time()
+    return time.strftime("%Hh%Mm%Ss", time.gmtime(time_end - time_start))
 
 @pipeline_def
 def image_resizing_pipeline(

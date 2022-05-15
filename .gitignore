@@ -129,6 +129,7 @@ dmypy.json
 .pyre/
 notebooks/*
 
-pipelines/cloud-segmentation-pipeline/outputs/*
+pipelines/clouds-segmentation-pipeline/outputs
+pipelines/clouds-segmentation-pipeline/checkpoints
 pipelines/artifacts/*
 *.pyc

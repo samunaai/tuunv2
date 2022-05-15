@@ -37,7 +37,7 @@ def train(cfg: DictConfig):
         id_mask_count["img_id"].values,
         random_state=42,
         stratify=id_mask_count["count"],
-        test_size=0.1,
+        test_size=0.25,
     )
 
     train_dataset = CloudDataset(
@@ -143,3 +143,4 @@ def train(cfg: DictConfig):
             )
             valid_loss_min = valid_loss
         scheduler.step(valid_loss)
+    return max(dice_score_list)
