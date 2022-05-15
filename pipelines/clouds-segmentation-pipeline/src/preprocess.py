@@ -13,6 +13,8 @@ from tqdm import tqdm
 
 def preprocess(cfg: DictConfig):
     output_directory = os.path.join(get_original_cwd(), cfg.image_out_dir)
+    if not os.path.exists(output_directory):
+        os.mkdir(output_directory)
     image_dir = os.path.join(get_original_cwd(), cfg.data_path, "train_images")
     image_names = sorted([fname for fname in os.listdir(image_dir)])
     image_paths = sorted(
@@ -51,6 +53,9 @@ def preprocess(cfg: DictConfig):
     masks_file_names = [
         x.replace("train_images", "train_masks") + ".npy" for x in image_paths
     ]
+    masks_out_dir = os.path.join(get_original_cwd(), cfg.masks_out_dir)
+    if not os.path.exists(masks_out_dir):
+        os.mkdir(masks_out_dir)
     for i in tqdm(range(len(masks_file_names))):
         arr = np.load(masks_file_names[i])
         name = masks_file_names[i].split("/")[-1]
@@ -76,7 +81,7 @@ def preprocess(cfg: DictConfig):
             interpolation=cv2.INTER_LINEAR,
         )
         np.save(
-            os.path.join(get_original_cwd(), os.path.join(cfg.masks_out_dir, name)),
+            os.path.join(masks_out_dir, name),
             resized_arr,
         )
     print(f"Masks have been resized and saved to {cfg.masks_out_dir}!")

@@ -1,17 +1,17 @@
 random_seed: 80
 
 #preprocess
-data_path: "../datasets/understanding_cloud_organization"
-image_out_dir: "./images_out"
-masks_out_dir: "./masks_out"
+data_path: "../../../datasets/understanding_cloud_organization"
+image_out_dir: "../artifacts/images_out"
+masks_out_dir: "../artifacts/masks_out"
 resize_height: 320
 resize_width: 640
 device: gpu
 batch_size: 32
 
 #train
-image_in_dir: "./images_out"
-masks_in_dir: "./masks_out"
+image_in_dir: "../artifacts/images_out"
+masks_in_dir: "../artifacts/masks_out"
 checkpoint_dir: "./checkpoints"
 epochs: 1
 optimizer: Adam

@@ -8,7 +8,7 @@ from src.train import train
 
 @hydra.main(config_path="configs", config_name="config.yaml")
 def run(cfg: DictConfig):
-    # preprocess(cfg=cfg)
+    preprocess(cfg=cfg)
     train(cfg=cfg)
     # postprocess(cfg=cfg)
 
