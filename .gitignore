@@ -134,3 +134,4 @@ pipelines/*.png
 pipelines/*.npy
 pipelines/*.npz
 pipelines/*.pth
+pipelines/artifacts/*
