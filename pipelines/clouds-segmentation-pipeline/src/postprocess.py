@@ -13,7 +13,7 @@ from torch.utils.data import DataLoader
 
 from src.dataset import CloudDataset
 from src.transforms import get_preprocessing, get_valid_aug
-from src.utils import mask2rle, post_process, sigmoid
+from src.utils import mask2rle, post_process, sigmoid, single_dice_coef
 
 
 def postprocess(cfg: DictConfig):
@@ -82,7 +82,7 @@ def postprocess(cfg: DictConfig):
                     cfg.min_mask_size,
                 )
 
-                dices.append(dice(mask, label))
+                dices.append(single_dice_coef(mask, label))
                 if num_predict == 0:
                     pred_distr[-1] += 1
                     encoded_pixels.append("")
