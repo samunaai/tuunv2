@@ -5,32 +5,6 @@ import torch
 import torch.nn as nn
 
 
-def dice(img1, img2):
-    img1 = np.asarray(img1).astype(np.bool)
-    img2 = np.asarray(img2).astype(np.bool)
-
-    intersection = np.logical_and(img1, img2)
-
-    return 2.0 * intersection.sum() / (img1.sum() + img2.sum())
-
-
-def dice_no_threshold(
-    outputs: torch.Tensor,
-    targets: torch.Tensor,
-    eps: float = 1e-7,
-    threshold: float = None,
-):
-    outputs = nn.Sigmoid()(outputs)
-    if threshold is not None:
-        outputs = (outputs > threshold).float()
-
-    intersection = torch.sum(targets * outputs)
-    union = torch.sum(targets) + torch.sum(outputs)
-    dice = 2 * intersection / (union + eps)
-
-    return dice
-
-
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
@@ -115,4 +89,4 @@ def mask2rle(img):
     pixels = np.concatenate([[0], pixels, [0]])
     runs = np.where(pixels[1:] != pixels[:-1])[0] + 1
     runs[1::2] -= runs[::2]
-    return " ".join(str(x) for x in runs)
+    return " ".join(str(x) for x in runs)    

@@ -13,7 +13,7 @@ from tqdm import tqdm
 
 from src.dataset import CloudDataset
 from src.transforms import get_preprocessing, get_train_aug, get_valid_aug
-from src.utils import BCEDiceLossCustom, dice_no_threshold
+from src.utils import BCEDiceLossCustom, mean_dice_coef
 
 
 def train(cfg: DictConfig):
@@ -37,7 +37,7 @@ def train(cfg: DictConfig):
         id_mask_count["img_id"].values,
         random_state=42,
         stratify=id_mask_count["count"],
-        test_size=0.25,
+        test_size=cfg.test_size,
     )
 
     train_dataset = CloudDataset(
@@ -109,7 +109,7 @@ def train(cfg: DictConfig):
                 output = model(data)
                 loss = criterion(output, target)
                 valid_loss += loss.item() * data.size(0)
-                dice_cof = dice_no_threshold(output.cpu(), target.cpu()).item()
+                dice_cof = mean_dice_coef(output.cpu(), target.cpu()).item()
                 dice_score += dice_cof * data.size(0)
                 bar.set_postfix(
                     ordered_dict={"valid_loss": loss.item(), "dice_score": dice_cof}

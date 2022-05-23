@@ -42,7 +42,7 @@ def postprocess(cfg: DictConfig):
         id_mask_count["img_id"].values,
         random_state=42,
         stratify=id_mask_count["count"],
-        test_size=0.25,
+        test_size=cfg.test_size,
     )
     preprocessing_fn = smp.encoders.get_preprocessing_fn(cfg.encoder, "imagenet")
     valid_dataset = CloudDataset(
@@ -61,22 +61,47 @@ def postprocess(cfg: DictConfig):
     encoded_pixels = []
     image_id = 0
 
-    for data, target in tqdm(valid_loader):
-        output = model(data)
-        for i, batch in enumerate(output):
-            for probability in batch:
-                probability = probability.cpu().detach().numpy()
-                if probability.shape != (350, 525):
-                    probability = cv2.resize(
-                        probability, dsize=(525, 350), interpolation=cv2.INTER_LINEAR
+    encoded_pixels = []
+    pred_distr = {-1: 0, 0: 0, 1: 0, 2: 0, 3: 0}
+    image_id = 0
+    model.eval()
+
+    dices = []
+    with torch.no_grad():
+        for images, labels in tqdm.tqdm(valid_loader, total=len(valid_loader)):
+            masks = model(images)
+            for mask, label in zip(masks, labels):
+                mask = mask.cpu().detach().numpy()
+                if mask.shape != (350, 525):
+                    mask = cv2.resize(
+                        mask, dsize=(525, 350), interpolation=cv2.INTER_LINEAR
                     )
-                predict, num_predict = post_process(
-                    sigmoid(probability), cfg.threshold, cfg.min_mask_size
+                mask, num_predict = post_process(
+                    sigmoid(mask),
+                    cfg.threshold,
+                    cfg.min_mask_size,
                 )
+
+                dices.append(dice(mask, label))
                 if num_predict == 0:
+                    pred_distr[-1] += 1
                     encoded_pixels.append("")
                 else:
-                    r = mask2rle(predict)
+                    pred_distr[image_id % 4] += 1
+                    r = mask2rle(mask)
                     encoded_pixels.append(r)
                 image_id += 1
+
+    print(
+        f"empty={pred_distr[-1]} fish={pred_distr[0]} flower={pred_distr[1]} gravel={pred_distr[2]} sugar={pred_distr[3]}"
+    )
+    non_empty = pred_distr[0] + pred_distr[1] + pred_distr[2] + pred_distr[3]
+    all = non_empty + pred_distr[-1]
+    sub = pd.read_csv(f"./artifacts/sample_submission.csv")
+    sub["EncodedPixels"] = encoded_pixels
+    sub.to_csv(
+        f"submission.csv",
+        columns=["Image_Label", "EncodedPixels"],
+        index=False,
+    )
     # todo compute dice
