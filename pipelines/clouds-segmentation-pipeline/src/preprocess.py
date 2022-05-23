@@ -14,13 +14,15 @@ import time
 
 def preprocess(cfg: DictConfig):
     time_start = time.time()
-    os.makedirs(os.path.join(get_original_cwd(), cfg.image_out_dir), exist_ok=True)
-    os.makedirs(os.path.join(get_original_cwd(), cfg.masks_out_dir), exist_ok=True)
-    output_directory = os.path.join(get_original_cwd(), cfg.image_out_dir)
-    image_dir = os.path.join(get_original_cwd(), cfg.data_path, "train_images")
-    image_names = sorted([fname for fname in os.listdir(image_dir)])
+    image_output_directory = os.path.join(get_original_cwd(), cfg.image_out_dir)
+    mask_output_directory = os.path.join(get_original_cwd(), cfg.masks_out_dir)
+    image_input_directory = os.path.join(get_original_cwd(), cfg.data_path, "train_images")
+
+    os.makedirs(image_output_directory, exist_ok=True)
+    os.makedirs(mask_output_directory, exist_ok=True)
+    image_names = sorted([fname for fname in os.listdir(image_input_directory)])
     image_paths = sorted(
-        [os.path.join(image_dir, fname) for fname in os.listdir(image_dir)]
+        [os.path.join(image_input_directory, fname) for fname in os.listdir(image_input_directory)]
     )
     pipeline = image_resizing_pipeline(
         file_names=image_paths,
@@ -45,13 +47,13 @@ def preprocess(cfg: DictConfig):
         images = images.as_array()
         for j in range(len(images)):
             cv2.imwrite(
-                os.path.join(output_directory, image_names[cur]),
+                os.path.join(image_output_directory, image_names[cur]),
                 cv2.cvtColor(images[j], cv2.COLOR_BGR2RGB),
             )
             cur += 1
             if cur == len(image_names):
                 break  # handling last batch of a smaller size
-    print(f"Images have been resized and save to {output_directory}!")
+    print(f"Images have been resized and save to {image_output_directory}!")
     masks_file_names = [
         x.replace("train_images", "train_masks") + ".npy" for x in image_paths
     ]

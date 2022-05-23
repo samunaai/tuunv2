@@ -21,7 +21,7 @@ def run(cfg: DictConfig):
     preprocess_time = preprocess(cfg=cfg)
     dice_score = train(cfg=cfg)
     # postprocess(cfg=cfg)
-    wandb.log({'preprocess time': preprocess_time, 'dice score': dice_score})
+    wandb.log({'dice score': dice_score})
 
 
 
