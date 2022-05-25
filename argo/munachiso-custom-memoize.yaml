@@ -16,9 +16,13 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Workflow
 metadata:
-  generateName: memoized-simple-workflow-
+  generateName: munachiso-memoize-simple-workflow-
 spec:
   entrypoint: whalesay
+  volumes:
+  - name: workdir
+    persistentVolumeClaim:
+      claimName: decoy-volume
   arguments:
     parameters:
     - name: message
@@ -37,9 +41,14 @@ spec:
     container:
       image: docker/whalesay:latest
       command: [sh, -c]
-      args: ["cowsay {{inputs.parameters.message}} > /tmp/hello_world.txt"]
+      args: ["cowsay {{inputs.parameters.message}} > /mnt/vol/{{inputs.parameters.message}}.txt; cat /mnt/vol/{{inputs.parameters.message}}.txt"]
+      volumeMounts:
+      - name: workdir
+        mountPath: /mnt/vol
     outputs:
       parameters:
       - name: hello
         valueFrom:
-          path: /tmp/hello_world.txt
+          path: /mnt/vol/{{inputs.parameters.message}}.txt
+
+

@@ -1,3 +1,6 @@
+##### This is mostly copy-Pasta from https://github.com/argoproj/argo-workflows/blob/master/examples/volumes-existing.yaml
+##### used for the purpose of getting volume mounts to work in Argo workflows
+
 # This example demonstrates the ability for a workflow to attach 
 # to a pre-created, existing volume for use throughout a workflow.
 # A PVC named 'my-existing-volume' is assumed to exist. Create it
@@ -30,7 +33,7 @@ spec:
     container:
       image: alpine:latest
       command: [sh, -c]
-      args: ["echo accessed at: $(date) | tee -a /mnt/vol/accesslg"]
+      args: ["echo accessed at: $(date) | tee -a /mnt/vol/accesslog"]
       volumeMounts:
       - name: workdir
         mountPath: /mnt/vol
@@ -39,7 +42,7 @@ spec:
     container:
       image: alpine:latest
       command: [sh, -c]
-      args: ["echo 'Volume access log:'; "]
+      args: ["echo 'Volume access log:'; cat /mnt/vol/accesslog"]
       volumeMounts:
       - name: workdir
         mountPath: /mnt/vol
