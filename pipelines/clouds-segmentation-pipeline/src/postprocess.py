@@ -13,7 +13,7 @@ from torch.utils.data import DataLoader
 
 from src.dataset import CloudDataset
 from src.transforms import get_preprocessing, get_valid_aug
-from src.utils import mask2rle, post_process, sigmoid
+from src.utils import mask2rle, post_process, sigmoid, single_dice_coef
 
 
 def postprocess(cfg: DictConfig):
@@ -42,7 +42,7 @@ def postprocess(cfg: DictConfig):
         id_mask_count["img_id"].values,
         random_state=42,
         stratify=id_mask_count["count"],
-        test_size=0.25,
+        test_size=cfg.test_size,
     )
     preprocessing_fn = smp.encoders.get_preprocessing_fn(cfg.encoder, "imagenet")
     valid_dataset = CloudDataset(
@@ -61,22 +61,52 @@ def postprocess(cfg: DictConfig):
     encoded_pixels = []
     image_id = 0
 
-    for data, target in tqdm(valid_loader):
-        output = model(data)
-        for i, batch in enumerate(output):
-            for probability in batch:
-                probability = probability.cpu().detach().numpy()
-                if probability.shape != (350, 525):
-                    probability = cv2.resize(
-                        probability, dsize=(525, 350), interpolation=cv2.INTER_LINEAR
+    encoded_pixels = []
+    pred_distr = {-1: 0, 0: 0, 1: 0, 2: 0, 3: 0}
+    image_id = 0
+    model.eval()
+
+    dices = []
+    with torch.no_grad():
+        for images, labels in tqdm.tqdm(valid_loader, total=len(valid_loader)):
+            images = images.to("cuda")
+            labels = labels.to("cuda")
+            masks = model(images)
+            for mask, label in zip(masks, labels):
+                mask = mask.cpu().detach().numpy()
+                label = label.cpu().detach().numpy()
+                for m, l in zip(mask, label):
+                    if m.shape != (350, 525):
+                        print(m.shape)
+                        m = cv2.resize(
+                            m, dsize=(525, 350), interpolation=cv2.INTER_LINEAR
+                        )
+                        l = cv2.resize(
+                            l, dsize=(525, 350), interpolation=cv2.INTER_LINEAR
+                        )
+                    m, num_predict = post_process(
+                        sigmoid(m),
+                        cfg.threshold,
+                        cfg.min_mask_size,
                     )
-                predict, num_predict = post_process(
-                    sigmoid(probability), cfg.threshold, cfg.min_mask_size
-                )
-                if num_predict == 0:
-                    encoded_pixels.append("")
-                else:
-                    r = mask2rle(predict)
-                    encoded_pixels.append(r)
+
+                    if (m.sum() == 0) & (l.sum() == 0):
+                        dices.append(1)
+                    else:
+                        dices.append(single_dice_coef(m, l))
+
+                    if num_predict == 0:
+                        pred_distr[-1] += 1
+                        encoded_pixels.append("")
+                    else:
+                        pred_distr[image_id % 4] += 1
+                        r = mask2rle(m)
+                        encoded_pixels.append(r)
                 image_id += 1
-    # todo compute dice
+
+    print(
+        f"empty={pred_distr[-1]} fish={pred_distr[0]} flower={pred_distr[1]} gravel={pred_distr[2]} sugar={pred_distr[3]}"
+    )
+    final_dice = np.array(dices).mean()
+    print(f"Dice={final_dice}")
+    return final_dice

@@ -1,4 +1,5 @@
 import os
+import time
 from typing import List
 
 import cv2
@@ -9,18 +10,24 @@ from nvidia import dali
 from nvidia.dali import pipeline_def
 from omegaconf import DictConfig
 from tqdm import tqdm
-import time
 
 
 def preprocess(cfg: DictConfig):
     time_start = time.time()
-    output_directory = os.path.join(get_original_cwd(), cfg.image_out_dir)
-    if not os.path.exists(output_directory):
-        os.mkdir(output_directory)
-    image_dir = os.path.join(get_original_cwd(), cfg.data_path, "train_images")
-    image_names = sorted([fname for fname in os.listdir(image_dir)])
+    image_output_directory = os.path.join(get_original_cwd(), cfg.image_out_dir)
+    mask_output_directory = os.path.join(get_original_cwd(), cfg.masks_out_dir)
+    image_input_directory = os.path.join(
+        get_original_cwd(), cfg.data_path, "train_images"
+    )
+
+    os.makedirs(image_output_directory, exist_ok=True)
+    os.makedirs(mask_output_directory, exist_ok=True)
+    image_names = sorted([fname for fname in os.listdir(image_input_directory)])
     image_paths = sorted(
-        [os.path.join(image_dir, fname) for fname in os.listdir(image_dir)]
+        [
+            os.path.join(image_input_directory, fname)
+            for fname in os.listdir(image_input_directory)
+        ]
     )
     pipeline = image_resizing_pipeline(
         file_names=image_paths,
@@ -45,19 +52,16 @@ def preprocess(cfg: DictConfig):
         images = images.as_array()
         for j in range(len(images)):
             cv2.imwrite(
-                os.path.join(output_directory, image_names[cur]),
+                os.path.join(image_output_directory, image_names[cur]),
                 cv2.cvtColor(images[j], cv2.COLOR_BGR2RGB),
             )
             cur += 1
             if cur == len(image_names):
                 break  # handling last batch of a smaller size
-    print(f"Images have been resized and save to {output_directory}!")
+    print(f"Images have been resized and save to {image_output_directory}!")
     masks_file_names = [
         x.replace("train_images", "train_masks") + ".npy" for x in image_paths
     ]
-    masks_out_dir = os.path.join(get_original_cwd(), cfg.masks_out_dir)
-    if not os.path.exists(masks_out_dir):
-        os.mkdir(masks_out_dir)
     for i in tqdm(range(len(masks_file_names))):
         arr = np.load(masks_file_names[i])
         name = masks_file_names[i].split("/")[-1]
@@ -83,12 +87,13 @@ def preprocess(cfg: DictConfig):
             interpolation=cv2.INTER_LINEAR,
         )
         np.save(
-            os.path.join(masks_out_dir, name),
+            os.path.join(get_original_cwd(), os.path.join(cfg.masks_out_dir, name)),
             resized_arr,
         )
-    print(f"Masks have been resized and saved to {masks_out_dir}!")
+    print(f"Masks have been resized and saved to {cfg.masks_out_dir}!")
     time_end = time.time()
     return time.strftime("%Hh%Mm%Ss", time.gmtime(time_end - time_start))
+
 
 @pipeline_def
 def image_resizing_pipeline(

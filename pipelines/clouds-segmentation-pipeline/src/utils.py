@@ -5,32 +5,6 @@ import torch
 import torch.nn as nn
 
 
-def dice(img1, img2):
-    img1 = np.asarray(img1).astype(np.bool)
-    img2 = np.asarray(img2).astype(np.bool)
-
-    intersection = np.logical_and(img1, img2)
-
-    return 2.0 * intersection.sum() / (img1.sum() + img2.sum())
-
-
-def dice_no_threshold(
-    outputs: torch.Tensor,
-    targets: torch.Tensor,
-    eps: float = 1e-7,
-    threshold: float = None,
-):
-    outputs = nn.Sigmoid()(outputs)
-    if threshold is not None:
-        outputs = (outputs > threshold).float()
-
-    intersection = torch.sum(targets * outputs)
-    union = torch.sum(targets) + torch.sum(outputs)
-    dice = 2 * intersection / (union + eps)
-
-    return dice
-
-
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
@@ -38,8 +12,8 @@ def sigmoid(x):
 def single_dice_coef(y_pred_bin, y_true):
     if not isinstance(y_pred_bin, np.ndarray):
         y_pred_bin = y_pred_bin.cpu().detach().numpy()
-    y_pred_bin = sigmoid(y_pred_bin)
-    y_pred_bin = y_pred_bin > 0.5
+    # y_pred_bin = sigmoid(y_pred_bin)
+    # y_pred_bin = y_pred_bin > 0.5
     if not isinstance(y_true, np.ndarray):
         y_true = y_true.cpu().detach().numpy()
     intersection = np.sum(y_true * y_pred_bin)

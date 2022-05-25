@@ -1,4 +1,5 @@
 import os
+import time
 
 import numpy as np
 import pandas as pd
@@ -13,10 +14,11 @@ from tqdm import tqdm
 
 from src.dataset import CloudDataset
 from src.transforms import get_preprocessing, get_train_aug, get_valid_aug
-from src.utils import BCEDiceLossCustom, dice_no_threshold
+from src.utils import BCEDiceLossCustom, mean_dice_coef
 
 
 def train(cfg: DictConfig):
+    time_start = time.time()
     df_train = pd.read_csv(os.path.join(get_original_cwd(), cfg.data_path, "train.csv"))
     model = smp.Unet(
         encoder_name=cfg.encoder,
@@ -37,7 +39,7 @@ def train(cfg: DictConfig):
         id_mask_count["img_id"].values,
         random_state=42,
         stratify=id_mask_count["count"],
-        test_size=0.25,
+        test_size=cfg.test_size,
     )
 
     train_dataset = CloudDataset(
@@ -109,7 +111,7 @@ def train(cfg: DictConfig):
                 output = model(data)
                 loss = criterion(output, target)
                 valid_loss += loss.item() * data.size(0)
-                dice_cof = dice_no_threshold(output.cpu(), target.cpu()).item()
+                dice_cof = mean_dice_coef(output.cpu(), target.cpu()).item()
                 dice_score += dice_cof * data.size(0)
                 bar.set_postfix(
                     ordered_dict={"valid_loss": loss.item(), "dice_score": dice_cof}
@@ -143,4 +145,7 @@ def train(cfg: DictConfig):
             )
             valid_loss_min = valid_loss
         scheduler.step(valid_loss)
-    return max(dice_score_list)
+    time_end = time.time()
+    return max(dice_score_list), time.strftime(
+        "%Hh%Mm%Ss", time.gmtime(time_end - time_start)
+    )

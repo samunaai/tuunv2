@@ -1,0 +1,36 @@
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v3.2.0
+    hooks:
+    -   id: check-ast
+    -   id: end-of-file-fixer
+    -   id: check-added-large-files
+    -   id: requirements-txt-fixer
+    -   id: check-byte-order-marker
+    -   id: check-case-conflict
+    -   id: check-docstring-first
+    -   id: check-executables-have-shebangs
+    -   id: check-json
+    -   id: check-yaml
+    -   id: debug-statements
+    -   id: end-of-file-fixer
+    -   id: trailing-whitespace
+    -   id: mixed-line-ending
+-   repo: https://github.com/pycqa/isort
+    rev: 5.9.3
+    hooks:
+    - id: isort
+-   repo: https://github.com/ambv/black
+    rev: 21.10b0
+    hooks:
+    - id: black
+      language_version: python3
+-   repo: https://github.com/pycqa/flake8
+    rev: 4.0.1
+    hooks:
+    - id: flake8
+-   repo: https://github.com/asottile/pyupgrade
+    rev: v2.7.2
+    hooks:
+    -   id: pyupgrade
+        args: [--py38-plus]
