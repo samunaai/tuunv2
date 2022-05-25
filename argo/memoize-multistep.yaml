@@ -1,0 +1,129 @@
+# Leveraged a combination of memoization and artefact passing 
+# example workflows i.e 
+# https://github.com/argoproj/argo-workflows/blob/master/examples/memoize-simple.yaml
+# https://github.com/argoproj/argo-workflows/blob/master/examples/artifact-passing.yaml
+# 
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: memoized-simple-workflow-
+spec:
+  entrypoint: entrypoint-point # an entry point template is like a main.py function
+  volumes:
+  - name: workdir
+    persistentVolumeClaim:
+      claimName: decoy-volume 
+  templates: # we will have 5 templates here- the first is just to specify steps, the other 4 are the templates for those stes
+  - name: entrypoint-point # 1st template, just used an entry point
+    steps:
+    - - name: generate-artifact
+        template: whalesay1
+        arguments:
+          parameters:
+          - name: parameter1
+            value: "parameter-default"
+    - - name: pass-artifact1
+        template: whalesay2
+        arguments:
+          # parameters:
+          # - name: parameter2
+          #   value: "parameter-default"
+          artifacts:
+          - name: artifact1
+            from: "{{steps.generate-artifact.outputs.artifacts.hello}}"
+    - - name: pass-artifact2
+        template: whalesay3
+        arguments:
+          # parameters:
+          # - name: parameter3
+          #   value: "parameter-default"
+          artifacts:
+          - name: artifact2
+            from: "{{steps.pass-artifact1.outputs.artifacts.hello}}"
+    - - name: print-artifacts
+        template: print-whalesay
+        arguments:
+          artifacts:
+          - name: artifact3
+            from: "{{steps.pass-artifact2.outputs.artifacts.hello}}"
+  - name: whalesay1 # 2nd template, 1st step; takes input from terminal and runs whalesay
+    inputs:
+      parameters:
+      - name: parameter1
+    # memoize:
+    #   key: "{{inputs.parameters.parameter}}"
+    #   maxAge: "3000s"
+    #   cache:
+    #     configMap:
+    #       name: my-config
+    container:
+      image: docker/whalesay:latest
+      command: [sh, -c]
+      args: ["cowsay {{inputs.parameters.parameter1}} | tee /mnt/vol/{{inputs.parameters.parameter1}}.txt; ls /mnt/vol/"]
+      volumeMounts:
+      - name: workdir
+        mountPath: /mnt/vol
+    outputs:
+      artifacts:
+      - name: hello
+        path: /mnt/vol/{{inputs.parameters.parameter1}}.txt
+  - name: whalesay2 # 3rd template, 2nd step; takes 1st whalesay, adds a 2nd whalesay
+    inputs:
+      artifacts:
+      - name: artifact1
+        path: /tmp/artifact1
+    # memoize:
+    #   key: "{{inputs.parameters.parameter}}"
+    #   maxAge: "3000s"
+    #   cache:
+    #     configMap:
+    #       name: my-config
+    container:
+      image: docker/whalesay:latest
+      command: [sh, -c]  # interesting, in case we need '>>' later; https://stackoverflow.com/questions/17701989/how-do-i-append-text-to-a-file
+      # args: ["(cat /tmp/artifact1; cowsay {{inputs.parameters.parameter}}) > /mnt/vol/{{inputs.parameters.message}}.txt"]
+      args: ["(cat /tmp/artifact1; cowsay kirill) > /mnt/vol/whalesay2.txt"]
+      volumeMounts:
+      - name: workdir
+        mountPath: /mnt/vol
+    outputs:
+      artifacts:
+      - name: hello
+        # path: /mnt/vol/{{inputs.parameters.message}}.txt
+        path: /mnt/vol/whalesay2.txt
+  - name: whalesay3 # 4th template, 3rd step; takes 2nd whalesay, adds a 3rd whalesay
+    inputs:
+      artifacts:
+      - name: artifact2
+        path: /tmp/artifact2
+    # memoize:
+    #   key: "{{inputs.parameters.parameter}}"
+    #   maxAge: "3000s"
+    #   cache:
+    #     configMap:
+    #       name: my-config
+    container:
+      image: docker/whalesay:latest
+      command: [sh, -c]
+      # args: ["(cat /tmp/artifact2; cowsay {{inputs.parameters.parameter}}) > /mnt/vol/{{inputs.parameters.message}}.txt"]
+      args: ["(cat /tmp/artifact2; cowsay kirill) > /mnt/vol/whalesay3.txt"]
+      volumeMounts:
+      - name: workdir
+        mountPath: /mnt/vol
+    outputs:
+      artifacts:
+      - name: hello
+        # path: /mnt/vol/{{inputs.parameters.message}}.txt
+        path: /mnt/vol/whalesay3.txt
+  - name: print-whalesay
+    inputs:
+      artifacts:
+      - name: artifact3
+        path: /tmp/artifact3
+    container:
+      image: alpine:latest
+      command: [sh, -c]
+      args: ["(cat /tmp/artifact3"]
+      volumeMounts:
+      - name: workdir
+        mountPath: /mnt/vol
