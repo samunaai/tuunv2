@@ -1,4 +1,5 @@
 import os
+import time
 
 import numpy as np
 import pandas as pd
@@ -17,6 +18,7 @@ from src.utils import BCEDiceLossCustom, mean_dice_coef
 
 
 def train(cfg: DictConfig):
+    time_start = time.time()
     df_train = pd.read_csv(os.path.join(get_original_cwd(), cfg.data_path, "train.csv"))
     model = smp.Unet(
         encoder_name=cfg.encoder,
@@ -143,4 +145,7 @@ def train(cfg: DictConfig):
             )
             valid_loss_min = valid_loss
         scheduler.step(valid_loss)
-    return max(dice_score_list)
+    time_end = time.time()
+    return max(dice_score_list), time.strftime(
+        "%Hh%Mm%Ss", time.gmtime(time_end - time_start)
+    )

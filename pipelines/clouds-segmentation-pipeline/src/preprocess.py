@@ -1,4 +1,5 @@
 import os
+import time
 from typing import List
 
 import cv2
@@ -9,20 +10,24 @@ from nvidia import dali
 from nvidia.dali import pipeline_def
 from omegaconf import DictConfig
 from tqdm import tqdm
-import time
 
 
 def preprocess(cfg: DictConfig):
     time_start = time.time()
     image_output_directory = os.path.join(get_original_cwd(), cfg.image_out_dir)
     mask_output_directory = os.path.join(get_original_cwd(), cfg.masks_out_dir)
-    image_input_directory = os.path.join(get_original_cwd(), cfg.data_path, "train_images")
+    image_input_directory = os.path.join(
+        get_original_cwd(), cfg.data_path, "train_images"
+    )
 
     os.makedirs(image_output_directory, exist_ok=True)
     os.makedirs(mask_output_directory, exist_ok=True)
     image_names = sorted([fname for fname in os.listdir(image_input_directory)])
     image_paths = sorted(
-        [os.path.join(image_input_directory, fname) for fname in os.listdir(image_input_directory)]
+        [
+            os.path.join(image_input_directory, fname)
+            for fname in os.listdir(image_input_directory)
+        ]
     )
     pipeline = image_resizing_pipeline(
         file_names=image_paths,
@@ -88,6 +93,7 @@ def preprocess(cfg: DictConfig):
     print(f"Masks have been resized and saved to {cfg.masks_out_dir}!")
     time_end = time.time()
     return time.strftime("%Hh%Mm%Ss", time.gmtime(time_end - time_start))
+
 
 @pipeline_def
 def image_resizing_pipeline(

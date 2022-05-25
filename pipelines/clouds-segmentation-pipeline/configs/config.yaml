@@ -1,14 +1,14 @@
 random_seed: 80
 debug: false
-test_size: 0.2
+test_size: 0.3
 
 # preprocessing
 
 data_path: "../../../datasets/understanding_cloud_organization"
 image_out_dir: "../artifacts/images_out"
 masks_out_dir: "../artifacts/masks_out"
-resize_height: 320
-resize_width: 640
+resize_height: 320 # have to be divisible by 32 because of Unet
+resize_width: 640 # have to be divisible by 32 because of Unet
 device: gpu
 batch_size: 32
 

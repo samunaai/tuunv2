@@ -12,8 +12,8 @@ def sigmoid(x):
 def single_dice_coef(y_pred_bin, y_true):
     if not isinstance(y_pred_bin, np.ndarray):
         y_pred_bin = y_pred_bin.cpu().detach().numpy()
-    y_pred_bin = sigmoid(y_pred_bin)
-    y_pred_bin = y_pred_bin > 0.5
+    # y_pred_bin = sigmoid(y_pred_bin)
+    # y_pred_bin = y_pred_bin > 0.5
     if not isinstance(y_true, np.ndarray):
         y_true = y_true.cpu().detach().numpy()
     intersection = np.sum(y_true * y_pred_bin)
@@ -89,4 +89,4 @@ def mask2rle(img):
     pixels = np.concatenate([[0], pixels, [0]])
     runs = np.where(pixels[1:] != pixels[:-1])[0] + 1
     runs[1::2] -= runs[::2]
-    return " ".join(str(x) for x in runs)    
+    return " ".join(str(x) for x in runs)

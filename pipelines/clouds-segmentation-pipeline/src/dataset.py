@@ -24,8 +24,6 @@ class CloudDataset(Dataset):
         mask_path = os.path.join(self.mask_folder, image_name + ".npy")
         image_path = os.path.join(self.image_folder, image_name)
         img = cv2.imread(image_path)
-      #  print(image_path)
-      #  print(img)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         mask = np.load(mask_path, allow_pickle=False)
         augmented = self.transforms(image=img, mask=mask)
