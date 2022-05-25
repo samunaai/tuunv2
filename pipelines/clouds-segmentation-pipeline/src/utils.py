@@ -1,7 +1,5 @@
 import cv2
 import numpy as np
-import segmentation_models_pytorch as smp
-import torch
 import torch.nn as nn
 
 
@@ -9,11 +7,18 @@ def sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
 
+def simple_dice(img1: np.array, img2: np.array) -> float:
+    img1 = np.asarray(img1).astype(np.bool)
+    img2 = np.asarray(img2).astype(np.bool)
+    intersection = np.logical_and(img1, img2)
+    return 2.0 * intersection.sum() / (img1.sum() + img2.sum())
+
+
 def single_dice_coef(y_pred_bin, y_true):
     if not isinstance(y_pred_bin, np.ndarray):
         y_pred_bin = y_pred_bin.cpu().detach().numpy()
-    # y_pred_bin = sigmoid(y_pred_bin)
-    # y_pred_bin = y_pred_bin > 0.5
+    y_pred_bin = sigmoid(y_pred_bin)
+    y_pred_bin = y_pred_bin > 0.5
     if not isinstance(y_true, np.ndarray):
         y_true = y_true.cpu().detach().numpy()
     intersection = np.sum(y_true * y_pred_bin)

@@ -130,6 +130,7 @@ dmypy.json
 notebooks/*
 
 pipelines/clouds-segmentation-pipeline/outputs
+pipelines/clouds-segmentation-pipeline/multirun
 pipelines/clouds-segmentation-pipeline/checkpoints
 pipelines/artifacts/*
 *.pyc

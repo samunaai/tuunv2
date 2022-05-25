@@ -6,10 +6,13 @@ def get_train_aug():
     train_transform = [
         #  albu.Resize(320, 640),
         albu.HorizontalFlip(p=0.5),
+        albu.VerticalFlip(p=0.5),
         albu.ShiftScaleRotate(
-            scale_limit=0.5, rotate_limit=0, shift_limit=0.1, p=0.5, border_mode=0
+            scale_limit=0.3, rotate_limit=15, shift_limit=0.1, p=0.5, border_mode=0
         ),
         albu.GridDistortion(p=0.5),
+        albu.OpticalDistortion(p=0.5, distort_limit=0.1, shift_limit=0.2),
+        albu.RandomBrightnessContrast(p=0.5),
         albu.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
         ToTensorV2(),
     ]

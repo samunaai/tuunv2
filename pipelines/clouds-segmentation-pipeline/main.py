@@ -11,8 +11,8 @@ from src.train import train
 
 @hydra.main(config_path="configs", config_name="config.yaml")
 def run(cfg: DictConfig):
-    name = str(datetime.datetime.now())
-    wandb.init(
+    name = datetime.datetime.now().strftime("%b%d_%H:%M:%S")
+    run = wandb.init(
         project="cloud-segmentation-pipeline",
         name=name,
         entity="cyr1ll",
@@ -20,14 +20,16 @@ def run(cfg: DictConfig):
         mode="disabled" if cfg.debug == "local" else "online",
     )
 
-    # preprocess_time = preprocess(cfg=cfg)
-    # wandb.log({'preprocess time': preprocess_time})
+   # preprocess_time = preprocess(cfg=cfg)
+   # run.log({'preprocessing time': preprocess_time})
 
-    train_dice_score, time = train(cfg=cfg)
-    wandb.log({"train time": train_dice_score})
+    train_dice_score, train_time = train(cfg=cfg, run=run)
+    run.log({"max train dice score": train_dice_score, "train time": train_time})
 
     final_dice = postprocess(cfg=cfg)
-    wandb.log({"final dice": final_dice})
+    run.log({"dice after postprocessing": final_dice})
+    
+    run.finish()
 
 
 if __name__ == "__main__":

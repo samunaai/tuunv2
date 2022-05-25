@@ -13,7 +13,7 @@ from torch.utils.data import DataLoader
 
 from src.dataset import CloudDataset
 from src.transforms import get_preprocessing, get_valid_aug
-from src.utils import mask2rle, post_process, sigmoid, single_dice_coef
+from src.utils import mask2rle, post_process, sigmoid, simple_dice
 
 
 def postprocess(cfg: DictConfig):
@@ -77,7 +77,6 @@ def postprocess(cfg: DictConfig):
                 label = label.cpu().detach().numpy()
                 for m, l in zip(mask, label):
                     if m.shape != (350, 525):
-                        print(m.shape)
                         m = cv2.resize(
                             m, dsize=(525, 350), interpolation=cv2.INTER_LINEAR
                         )
@@ -93,7 +92,7 @@ def postprocess(cfg: DictConfig):
                     if (m.sum() == 0) & (l.sum() == 0):
                         dices.append(1)
                     else:
-                        dices.append(single_dice_coef(m, l))
+                        dices.append(simple_dice(m, l))
 
                     if num_predict == 0:
                         pred_distr[-1] += 1
