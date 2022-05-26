@@ -17,7 +17,7 @@ from src.transforms import get_preprocessing, get_train_aug, get_valid_aug
 from src.utils import BCEDiceLossCustom, mean_dice_coef
 
 
-def train(cfg: DictConfig):
+def train(cfg: DictConfig, run):
     time_start = time.time()
     df_train = pd.read_csv(os.path.join(get_original_cwd(), cfg.data_path, "train.csv"))
     model = smp.Unet(
@@ -37,7 +37,7 @@ def train(cfg: DictConfig):
     )
     train_ids, valid_ids = train_test_split(
         id_mask_count["img_id"].values,
-        random_state=42,
+        random_state=cfg.random_seed,
         stratify=id_mask_count["count"],
         test_size=cfg.test_size,
     )
@@ -132,6 +132,8 @@ def train(cfg: DictConfig):
                 epoch, train_loss, valid_loss, dice_score
             )
         )
+
+        run.log({'epoch': epoch, 'train_loss': train_loss, 'valid_loss': valid_loss, 'dice_score': dice_score})
 
         if valid_loss <= valid_loss_min:
             print(
