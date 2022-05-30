@@ -6,7 +6,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Workflow
 metadata:
-  generateName: memoized-simple-workflow-
+  generateName: memoized-multistep-workflow-
 spec:
   entrypoint: entrypoint-point # an entry point template is like a main.py function
   volumes:
@@ -54,16 +54,13 @@ spec:
           artifacts:
           - name: artifact3
             from: "{{steps.pass-artifact2.outputs.artifacts.hello}}"
-  - name: whalesay1 # 2nd template, 1st step; takes input from terminal and runs whalesay
-    # inputs:
-    #   parameters:
-    #   - name: parameter1
-    # memoize:
-    #   key: "{{workflow.parameters.parameter1}}"
-    #   maxAge: "3000s"
-    #   cache:
-    #     configMap:
-    #       name: my-config
+  - name: whalesay1 # 2nd template, 1st step; takes input from terminal and runs whalesay 
+    memoize:
+      key: "{{workflow.parameters.parameter1}}"
+      maxAge: "5m"
+      cache:
+        configMap:
+          name: my-config1
     container:
       image: docker/whalesay:latest
       command: [sh, -c]
@@ -76,18 +73,16 @@ spec:
       - name: hello
         path: /mnt/vol/{{workflow.parameters.parameter1}}.txt
   - name: whalesay2 # 3rd template, 2nd step; takes 1st whalesay, adds a 2nd whalesay
-    inputs:
-      # parameters:
-      # - name: parameter2
+    inputs: 
       artifacts:
       - name: artifact1
         path: /tmp/artifact1
-    # memoize:
-    #   key: "{{workflow.parameters.parameter2}}"
-    #   maxAge: "3000s"
-    #   cache:
-    #     configMap:
-    #       name: my-config
+    memoize:
+      key: "{{workflow.parameters.parameter2}}"
+      maxAge: "5m"
+      cache:
+        configMap:
+          name: my-config2
     container:
       image: docker/whalesay:latest
       command: [sh, -c]  # interesting, in case we need '>>' later; https://stackoverflow.com/questions/17701989/how-do-i-append-text-to-a-file
@@ -102,18 +97,16 @@ spec:
         path: /mnt/vol/{{workflow.parameters.parameter2}}.txt
         # path: /mnt/vol/whalesay2.txt
   - name: whalesay3 # 4th template, 3rd step; takes 2nd whalesay, adds a 3rd whalesay
-    inputs:
-      # parameters:
-      # - name: parameter3
+    inputs: 
       artifacts:
       - name: artifact2
         path: /tmp/artifact2
-    # memoize:
-    #   key: "{{workflow.parameters.parameter3}}"
-    #   maxAge: "3000s"
-    #   cache:
-    #     configMap:
-    #       name: my-config
+    memoize:
+      key: "{{workflow.parameters.parameter3}}"
+      maxAge: "5m"
+      cache:
+        configMap:
+          name: my-config3
     container:
       image: docker/whalesay:latest
       command: [sh, -c]
