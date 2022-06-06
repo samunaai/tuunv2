@@ -78,7 +78,7 @@ spec:
       - name: artifact1
         path: /tmp/artifact1
     memoize:
-      key: "{{workflow.parameters.parameter2}}"
+      key: "{{workflow.parameters.parameter1}}{{workflow.parameters.parameter2}}"
       maxAge: "5m"
       cache:
         configMap:
@@ -102,7 +102,7 @@ spec:
       - name: artifact2
         path: /tmp/artifact2
     memoize:
-      key: "{{workflow.parameters.parameter3}}"
+      key: "{{workflow.parameters.parameter1}}{{workflow.parameters.parameter2}}{{workflow.parameters.parameter3}}"
       maxAge: "5m"
       cache:
         configMap:
