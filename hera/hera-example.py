@@ -25,7 +25,6 @@ w.add_task(t)
 w.create()
 
 
-
 """ 
 --> EXAMPLE 2 <--
 Attempted to modify the hera container example found in link below to have memoization
@@ -42,12 +41,8 @@ At the time hera had no memoization example, links used to try to figure out how
 from hera import (
 	GlobalInputParameter, Input, Memoize, Task, Workflow, WorkflowService
 	)
-
-
 def say(a: str):
     print(a)
-
-
 token = "eyJhbGciOiJSUzI1NiIsImtpZCI6IjBOaDJoR0hVS25meFhHMDJVNDVYZkFkekNTVHg1a2JFUk5fc0VMT2ZwaHMifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJhcmdvIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6ImFyZ28tdG9rZW4teDQ5MnoiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC5uYW1lIjoiYXJnbyIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6Ijg5YTRjMzk4LTM4ZWUtNDhkYi1iYjcwLWFjNjhkMjM3YTdmNyIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDphcmdvOmFyZ28ifQ.Z4YugHjkRdGrfl9oA_BrgTktnlyvbgAgyYAasxngpL-dV9FWi94CtTS6axLx1SpL8umOHI56GqTQhFBadbt_cbWNgRQXe7mv5EHGPBKSvdadYUfeNW655MZsI4Y_8ov_-3uQ-spvIYEXADYelwHHSh6dvomG4_TrOk9Jk5N5quc4zjCecR8jLpcKHLSsen1yDTnLjgSUPBjmjjNkvAaPE-Maphv80rwALZc6AOuZZlYUF4dJamGNptPqylyTKh8enzJCKltxI_UTra8-BiomasrsluOWBJXMR91YHvgyRAAko_C8fTcwWE04hwKN9qN_69UNLOZNRrjGl529uhppGg"
 ws = WorkflowService(host='https://localhost:2746/', token=token, verify_ssl=False)
 w = Workflow('container', service=ws, namespace="argo")
