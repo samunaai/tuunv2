@@ -9,8 +9,9 @@ from argo_workflows.model.io_argoproj_workflow_v1alpha1_workflow_create_request 
 from argo_workflows.model.io_argoproj_workflow_v1alpha1_workflow_spec import IoArgoprojWorkflowV1alpha1WorkflowSpec
 from argo_workflows.model.object_meta import ObjectMeta
 
-configuration = argo_workflows.Configuration(host="https://127.0.0.1:2746", verify_ssl=False) # mention in the README about the need to set verify ssl to false to avoid verif. errors
-configuration.verify_ssl = False
+ 
+configuration = argo_workflows.Configuration(host="https://127.0.0.1:2746", ssl_ca_cert=None) 
+configuration.verify_ssl = False # notice how switch set ssl off here, since there is no parameter for this in the Configuration class https://github.com/argoproj/argo-workflows/blob/master/sdks/python/client/argo_workflows/configuration.py
 
 manifest = IoArgoprojWorkflowV1alpha1Workflow(
     metadata=ObjectMeta(generate_name='hello-world-'),
@@ -31,3 +32,6 @@ if __name__ == '__main__':
         body=IoArgoprojWorkflowV1alpha1WorkflowCreateRequest(workflow=manifest),
         _check_return_type=False)
     pprint(api_response)
+
+
+ 
