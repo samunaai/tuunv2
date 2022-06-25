@@ -16,13 +16,13 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Workflow
 metadata:
-  generateName: munachiso-memoize-simple-workflow-
+  generateName: munachiso-custom-memoize-workflow-
 spec:
   entrypoint: whalesay
   volumes:
   - name: workdir
     persistentVolumeClaim:
-      claimName: decoy-volume
+      claimName: argo-pv-claim
   arguments:
     parameters:
     - name: message
@@ -33,15 +33,15 @@ spec:
       parameters:
       - name: message
     memoize:
-      key: "{{inputs.parameters.message}}"
-      maxAge: "3000s"
+      key: "{{inputs.parameters.message}}1"
+      maxAge: "30s"
       cache:
         configMap:
           name: my-config
     container:
       image: docker/whalesay:latest
       command: [sh, -c]
-      args: ["cowsay {{inputs.parameters.message}} > /mnt/vol/{{inputs.parameters.message}}.txt; cat /mnt/vol/{{inputs.parameters.message}}.txt"]
+      args: ["cowsay {{inputs.parameters.message}} > /mnt/vol/{{inputs.parameters.message}}.txt; cat /mnt/vol/{{inputs.parameters.message}}.txt; echo '===>'; ls /mnt/;"]
       volumeMounts:
       - name: workdir
         mountPath: /mnt/vol
