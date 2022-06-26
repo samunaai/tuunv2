@@ -28,9 +28,8 @@ from argo_workflows.model.volume import Volume
 from argo_workflows.model.volume_mount import VolumeMount
 
 parameter1 = "munachiso"
-parameter2 = "DrQirong"
-parameter3 = "Samuel"
-parameter4 = "nwadike"
+parameter2 = "Nwadike"
+parameter3 = "Osauyi"
 
 configuration = argo_workflows.Configuration(host="https://127.0.0.1:2746", ssl_ca_cert=None) 
 configuration.verify_ssl = False # notice how switch set ssl off here, since there is no parameter for this in the Configuration class https://github.com/argoproj/argo-workflows/blob/master/sdks/python/client/argo_workflows/configuration.py
@@ -86,7 +85,7 @@ manifest = IoArgoprojWorkflowV1alpha1Workflow(
                 name='whalesay1', 
                 memoize=IoArgoprojWorkflowV1alpha1Memoize(
                     key="{0}".format(parameter1),
-                    max_age='2m',
+                    max_age='10m',
                     cache=IoArgoprojWorkflowV1alpha1Cache(
                         config_map=ConfigMapKeySelector(key="{0}".format(parameter1), name="my-config1"))   
                 ),
@@ -118,7 +117,7 @@ manifest = IoArgoprojWorkflowV1alpha1Workflow(
                 ),
                 memoize=IoArgoprojWorkflowV1alpha1Memoize(
                     key="{0}{1}".format(parameter1,parameter2),
-                    max_age='2m',
+                    max_age='10m',
                     cache=IoArgoprojWorkflowV1alpha1Cache(
                         config_map=ConfigMapKeySelector(key="{0}".format(parameter1), name="my-config2"))   
                 ),
@@ -151,7 +150,7 @@ manifest = IoArgoprojWorkflowV1alpha1Workflow(
                 ),
                 memoize=IoArgoprojWorkflowV1alpha1Memoize(
                     key="{0}{1}{2}".format(parameter1,parameter2,parameter3),
-                    max_age='2m',
+                    max_age='10m',
                     cache=IoArgoprojWorkflowV1alpha1Cache(
                         config_map=ConfigMapKeySelector(key="{0}".format(parameter1), name="my-config3"))   
                 ),
