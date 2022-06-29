@@ -1,0 +1,19 @@
+
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: synth-test-
+  labels:
+    workflows.argoproj.io/archive-strategy: "false"
+  annotations:
+    workflows.argoproj.io/description: |
+      Testing synthetic pipelines
+      
+spec:
+  entrypoint: whalesay
+  templates:
+  - name: whalesay
+    container:
+      image: munachisonwadike/simple-xyz-pipeline
+      command: [sh, -c]
+      args: ["ls; python step1.py 2"]
