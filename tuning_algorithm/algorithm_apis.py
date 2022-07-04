@@ -14,6 +14,10 @@ to count as an abstract class, and have all such features see explanation here: 
 
 from abc import ABC, abstractmethod
 
+import numpy as np
+import time
+
+
 class TuningAlgorithm(ABC):
 	@abstractmethod
 	def suggest(self):
@@ -57,23 +61,45 @@ class TuningAlgorithm(ABC):
 		"""
 		pass
 		 
-
 class RandomSearch(TuningAlgorithm):
+	def __init__(self, range1, range2, range3, iters):
+		self.range1 = range1
+		self.range2 = range2
+		self.range3 = range3
+
+		self.num_iters = iters
+
+		self.best_val = 1000
+		print("Initial Best is =>" self.best_val)
+		self.best_params = [None, None, None]
+
 	def suggest(self):
 		"""picks a value from 
 		predifined ranges along each axis"""
-		pass
+		x = np.random.randint(low=self.range1[0], high=self.range1[1])
+		y = np.random.randint(low=self.range2[0], high=self.range2[1])
+		z = np.random.randint(low=self.range3[0], high=self.range3[1])
+		return x, y, z
 
-	def wss(self):
-		pass
+	def wss(self, x, y, z):
+		val = x**2 + y**2 + z**2
+		return val
 
-	def update(self):
-		pass
-
+	def update(self, current_val, x, y, z):
+		if current_val < self.best
+			print("We have a hit!")
+			time.sleep(5)
+			self.best_val = current_val
+			self.best_params = [x, y, z]
+			print("New Best is =>" self.best_val)
+			
 	def loop(self):
-		print("RandomSearch is now running")
-
-
+		for _ in range(self.num_iters):
+			print("RandomSearch is running")
+			x, y, z = self.suggest()
+			val = self.wss(x, y, z)
+			self.update(val, x, y, z)
+			time.sleep(1) # Sleep for 3 seconds
 
 class GridSearch(TuningAlgorithm)
 	def __init__(self, ranges):
@@ -99,8 +125,6 @@ class GridSearch(TuningAlgorithm)
 	def loop(self):
 		print("GridSearch is now running")
 
-
-
 class VanillaBO(TuningAlgorithm)
 	def suggest(self):
 		"""picks next val by maximing
@@ -118,14 +142,6 @@ class VanillaBO(TuningAlgorithm)
 
 	def loop(self):
 		print("VanillaBO is now running")
-
-		
-
-
-
-
-
-
 
 
 if __name__ == '__main__':
