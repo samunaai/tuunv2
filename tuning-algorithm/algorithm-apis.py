@@ -1,80 +1,106 @@
+'''
+TuningAlgorithm is the high-level abstract class that 
+other algortihms such as RandomSearch and BO variants inherit from
 
-class TuningAlgorithm()
-  def __init__(self, name, age):
-    self.name = name
-    self.age = age
+Note that the use of the ABC class in Python comes with a number of features, 
+e.g (a) preventing the user from instantating the high-level
+TuningAlgorithm class (which serves here as a ghost class). 
+(b) forcing the implementation of any method declared by the high-level class, 
+in all it's subclasses
 
-  def compute_next_eval_point(self, acq_function):
-    self.compute 
+@abstractmethod decorator must be used at least once for the TuningAlgorithm
+to count as an abstract class, and have all such features see explanation here: https://youtu.be/TeDlx2Klij0
+'''
 
-  def wss_plugin_function():
+from abc import ABC, abstractmethod
+
+class TuningAlgorithm(ABC):
+	@abstractmethod
+	def suggest(self):
+		""" suggests the next best 
+		point to query. e.g for random search
+		we just pick a point in our range; whereas
+		for BO, we maximise acquisition function
+		"""
+		pass
+
+	@abstractmethod
+  	def wss(self):
+  		"""sends set of hyperparameters 
+		to workflow submission system
+  		i.e our pipeline which runs 
+  		via Argo workflows SDK"""
+  		pass
+
+  	@abstractmethod
+	def update(self):
+		""" updates the 'thing' that helps us
+		pick new query points: e.g for gridsearch we 
+		the next point in a list; whereas for 
+		BO we can update parameters of a Gaussian Proc.
+		"""
+		pass
+
+	@abstractmethod
+	def loop(self):
+		""" main iterative-convergent loop using all fxn's
+		see pseudo-code in below:
+		for i in range(query_budget or num_iterations):
+			1. select a point
+			2. evaluate the point  by passing to workflow subssmision system
+				- return the cost/fxn value from wss  
+			3. update acquisition function
+				- in case of random search => pass
+				- in case of BO => update prob distributions and use that to update acquisition fxn
+		"""
+		pass
+		 
+
+class RandomSearch(TuningAlgorithm):
+	def suggest(self, utility_function):
+		"""Suggests the most promising point to probe next by maximising the acquisition function, 
+		as is typical in Bayesian Opt"""
+		pass
+	def loop(self):
+		print("Loop is now running")
+
+ 
+
+# class VanillaBayesianOptimisation()
+# 	def __init__(self, name, age):
+# 		self.name = name
+# 		self.age = age
+
+# 	def compute_next_eval_point(self, acq_function):
+# 		self.compute 
+
+# 	def pass_message_to_wss():
+# 		## BO
+# 		- Instead of random selection, we have acquisition function  
+# 		- Use AF to get new query points (best)
+# 		- Use function value (y) and query points (x) to update model (e.g GP) just so we can have better prior acq function
 
 
-  def run_algorithm_loop():
 
-  	for i in range(query_budget):
-  		(1) select_point
-		(2) evaluate_point
-			pass_x value to wss => y = wss_plugin_function(x)
-			return the cost from wss (we might now use yet, qirong just wants us to have it for later)
-		(3) update acquisition function
-			in case of random search => pass
-			in case of BO => update acquisition function (includes some mod to prior prob distribution inherently)
+# class GridSearch()
+# 	def __init__(self, name, age):
+# 		self.name = name
+# 		self.age = age
 
-## RANDOM SEARCH
-- Set a domain
-- Check randomly in the range 
-- Run algorithm for those values, repeat again
+# 	def compute_next_eval_point(self, acq_function):
+# 		self.compute 
 
-## BO
-- Instead of random selection, we have acquisition function  
-- Use AF to get new query points (best)
-- Use function value (y) and query points (x) to update model (e.g GP) just so we can have better prior acq function
+# 	def pass_message_to_wss():
 
 
 
 
-class RandomSearch()
-  def __init__(self, name, age):
-    self.name = name
-    self.age = age
-
-  def compute_next_eval_point(self, acq_function):
-    self.compute 
-
-  def pass_message_to_wss():
 
 
 
+if __name__ == '__main__':
+	r = RandomSearch()
+	r.run_algorithm_loop()
 
-class GridSearch()
-  def __init__(self, name, age):
-    self.name = name
-    self.age = age
+	t = TuningAlgorithm()
 
-  def compute_next_eval_point(self, acq_function):
-    self.compute 
-
-  def pass_message_to_wss():
-
-
-
-class VanillaBayesianOptimisation()
-  def __init__(self, name, age):
-    self.name = name
-    self.age = age
-
-  def compute_next_eval_point(self, acq_function):
-    self.compute 
-
-  def pass_message_to_wss():
-
-
-
-if name == __main__:
-  run ta algorithm using class above
-  and at each iteration, pass the new set of parameters to the python sdk file muna wrote
-
-  outer loop
-    inner loop
-      pass parameters to sdk and get results back (objective function; cost)
