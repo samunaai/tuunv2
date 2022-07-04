@@ -59,40 +59,68 @@ class TuningAlgorithm(ABC):
 		 
 
 class RandomSearch(TuningAlgorithm):
-	def suggest(self, utility_function):
-		"""Suggests the most promising point to probe next by maximising the acquisition function, 
-		as is typical in Bayesian Opt"""
+	def suggest(self):
+		"""picks a value from 
+		predifined ranges along each axis"""
 		pass
+
+	def wss(self):
+		pass
+
+	def update(self):
+		pass
+
 	def loop(self):
-		print("Loop is now running")
-
- 
-
-# class VanillaBayesianOptimisation()
-# 	def __init__(self, name, age):
-# 		self.name = name
-# 		self.age = age
-
-# 	def compute_next_eval_point(self, acq_function):
-# 		self.compute 
-
-# 	def pass_message_to_wss():
-# 		## BO
-# 		- Instead of random selection, we have acquisition function  
-# 		- Use AF to get new query points (best)
-# 		- Use function value (y) and query points (x) to update model (e.g GP) just so we can have better prior acq function
+		print("RandomSearch is now running")
 
 
 
-# class GridSearch()
-# 	def __init__(self, name, age):
-# 		self.name = name
-# 		self.age = age
+class GridSearch(TuningAlgorithm)
+	def __init__(self, ranges):
+		"""create list of values
+		based on provided ranges"""
 
-# 	def compute_next_eval_point(self, acq_function):
-# 		self.compute 
+		# TO-DO
+		self.list = None
 
-# 	def pass_message_to_wss():
+		pass
+
+	def suggest(self):
+		"""picks a value from 
+		predifined list """
+		return next(self.list)
+
+	def wss(self):
+		pass
+
+	def update(self):
+		pass
+
+	def loop(self):
+		print("GridSearch is now running")
+
+
+
+class VanillaBO(TuningAlgorithm)
+	def suggest(self):
+		"""picks next val by maximing
+		acquisition function"""
+		pass
+
+	def wss(self):
+		pass
+
+	def update(self):
+		"""Updates simple Gaussian Process
+		parameters to have an improved
+		acquisition function for next cycle""" 
+		pass
+
+	def loop(self):
+		print("VanillaBO is now running")
+
+		
+
 
 
 
