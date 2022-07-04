@@ -47,13 +47,13 @@ class TuningAlgorithm(ABC):
 		all the fxn's defined above
 		see pseudo-code in below:
 		for i in range(query_budget or num_iters):
-			1. select a point
-			2. evaluate point by passing to WSS
-				- return the cost/fxn value from wss  
-			3. update acquisition function
-				- in case of random search => pass
-				- in case of BO => update prob dists 
-					& and use to update acq. fxn
+		 1. select a point
+		 2. evaluate point by passing to WSS
+		  - return the cost/fxn value from wss  
+		 3. update acquisition function
+		  - in case of random search => pass
+		  - in case of BO => update prob dists 
+		   & and use to update acq. fxn
 		"""
 		pass
 		 
