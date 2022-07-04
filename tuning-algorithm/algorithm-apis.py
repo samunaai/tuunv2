@@ -43,15 +43,17 @@ class TuningAlgorithm(ABC):
 
 	@abstractmethod
 	def loop(self):
-		""" main iterative-convergent loop using all fxn's
+		""" main iterative-convergent loop using 
+		all the fxn's defined above
 		see pseudo-code in below:
-		for i in range(query_budget or num_iterations):
+		for i in range(query_budget or num_iters):
 			1. select a point
-			2. evaluate the point  by passing to workflow subssmision system
+			2. evaluate point by passing to WSS
 				- return the cost/fxn value from wss  
 			3. update acquisition function
 				- in case of random search => pass
-				- in case of BO => update prob distributions and use that to update acquisition fxn
+				- in case of BO => update prob dists 
+					& and use to update acq. fxn
 		"""
 		pass
 		 
