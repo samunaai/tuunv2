@@ -226,9 +226,9 @@ def submit_workflow(parameter1, parameter2, parameter3, refresh_window):
     -- 
     Simply producedure following the same pattern as Argo SDK docs
     """
-    '''
-    workflow_name = 'sdk-memoize-multistep-{0}-{1}-{2}'.format(parameter1,parameter2,parameter3)
     
+    workflow_name = 'sdk-memoize-multistep-{0}-{1}-{2}'.format(parameter1,parameter2,parameter3)
+    '''
     manifest = define_workflow(parameter1, parameter2, parameter3, workflow_name)
 
     configuration = argo_workflows.Configuration(host="https://127.0.0.1:2746", ssl_ca_cert=None) 
@@ -264,7 +264,7 @@ def submit_workflow(parameter1, parameter2, parameter3, refresh_window):
             break  
         i+=1  
     
-    
+    '''
     """
     Part C [Approach A]: Scrape workflow logs via Argo workflows wepAPI 
     Return the obj function value, Cost, and other necessary parameters
@@ -282,7 +282,7 @@ def submit_workflow(parameter1, parameter2, parameter3, refresh_window):
     return_value = None
         
     return return_value 
-    '''
+    
     """
     Part C [Approach B]: Scrape workflow logs via Kunbernetes Python Client  
     Return same contents as Approach A above
@@ -304,7 +304,8 @@ def submit_workflow(parameter1, parameter2, parameter3, refresh_window):
 
     v1 = client.CoreV1Api()
     print("Listing pods with their IPs:")
-    ret = v1.list_pod_for_all_namespaces(watch=False)
+    # ret = v1.list_pod_for_all_namespaces(watch=False)
+    ret = v1.list_namespaced_pod(namespace=argo, watch=False)
     for pod in ret.items:
         print("%s\t%s\t%s" % (pod.status.pod_ip, pod.metadata.namespace, pod.metadata.name))
         # break
@@ -333,29 +334,4 @@ if __name__ == '__main__':
 
 
  
-# def test_pod_logs(workflow_name, pod_name):
-#     configuration = argo_workflows.Configuration(host="https://127.0.0.1:2746", ssl_ca_cert=None) 
-#     configuration.verify_ssl = False # notice how switch set ssl off here, since there is no parameter for this in the Configuration class https://github.com/argoproj/argo-workflows/blob/master/sdks/python/client/argo_workflows/configuration.py
-
-#     api_client = argo_workflows.ApiClient(configuration)
-#     api_instance = workflow_service_api.WorkflowServiceApi(api_client)
-
-#     return_val_log = api_instance.pod_logs(
-#         namespace='argo',
-#         name=workflow_name,
-#         pod_name=pod_name)
-
-#     return return_val_log
-
-# def test_workflow_logs(workflow_name):
-#     configuration = argo_workflows.Configuration(host="https://127.0.0.1:2746", ssl_ca_cert=None) 
-#     configuration.verify_ssl = False # notice how switch set ssl off here, since there is no parameter for this in the Configuration class https://github.com/argoproj/argo-workflows/blob/master/sdks/python/client/argo_workflows/configuration.py
-
-#     api_client = argo_workflows.ApiClient(configuration)
-#     api_instance = workflow_service_api.WorkflowServiceApi(api_client)
-
-#     return_val_log = api_instance.workflow_logs(
-#         namespace='argo',
-#         name=workflow_name, _check_return_type=False)
-
-#     return return_val_log
+ 
