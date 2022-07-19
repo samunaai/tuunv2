@@ -32,8 +32,30 @@ import json
 import requests # https://requests.readthedocs.io/en/latest/user/quickstart/#binary-response-content
 import time
 
+
+def read_pod_logs_via_argo():
+
+    """
+    DEPRECATED!
+    ---
+    Decided not to use this appraoch of reading logs via argo 
+    Using K8S instead. Just kept this code in case I need later
+    Also, the code here is incomplete, just reads logs without parsing! 
+    """
+
+    url = 'https://localhost:2746/api/v1/workflows/argo/' + workflow_name
+    log_url = 'https://localhost:2746/api/v1/workflows/argo/sdk-memoize-multistep-3-6-2/'
+    log_url += 'sdk-memoize-multistep-3-6-2-return-template-1755894561/log?logOptions.container=main'
+    response = requests.get(url = log_url, verify=False)
+    r = response.text # can't use response.json(): response for logs is not a valid JSON format
+    for line in r.splitlines(): # instead parse the text files line-by-line
+        print("LINE # I", line) 
+
 def define_workflow(parameter1, parameter2, parameter3, workflow_name):
 
+    """
+    Define Argo Workflow using Python SDK
+    """
     manifest = IoArgoprojWorkflowV1alpha1Workflow(
         # metadata=ObjectMeta(generate_name='sdk-memoize-multistep-'),
         metadata=ObjectMeta(name=workflow_name), 
@@ -161,7 +183,7 @@ def define_workflow(parameter1, parameter2, parameter3, workflow_name):
                         ]
                     ),
                     memoize=IoArgoprojWorkflowV1alpha1Memoize(
-                        key="{0}{1}{2}".format(parameter1,parameter2,parameter3),
+                        key="{0}{1}{2} w s".format(parameter1,parameter2,parameter3),
                         max_age='10m',
                         cache=IoArgoprojWorkflowV1alpha1Cache(
                             config_map=ConfigMapKeySelector(key="{0}".format(parameter1), name="my-config3"))   
@@ -207,30 +229,78 @@ def define_workflow(parameter1, parameter2, parameter3, workflow_name):
     )
     
     return manifest
-     
+
+def monitor_workflow(url, refresh_window):
+
+    """
+    Monitor workflow Status 
+    --
+    1 second lag is needed for Argo API to start to show the status of running/succeeded/failed
+    Hence the use of time.sleep
+    We use 'workflows.argoproj.io/phase' (under ['metadata']['labels']) instead of 'workflows.argoproj.io/completed' since the latter is only created at the end of WF lifecycle
+    """    
+
+    i=1;  
+    while True:
+        print("[TuunV2] API GET --> Waiting {0} secs pre-workflow completion check #{1}".format(refresh_window,i))
+        time.sleep(refresh_window) # wait a predefined number of seconds to check workflow progress
+        response = requests.get(url=url, verify=False)
+        response_dict = response.json() 
+        print("[TuunV2] TimeWindow{0} --> Status ==".format(i), response_dict['metadata']['labels']['workflows.argoproj.io/phase'] ) 
+        if response_dict['metadata']['labels']['workflows.argoproj.io/phase'] != "Running":
+            print("[TuunV2] --> Workflow has finished Running")
+            break  
+        i+=1  
+
+    return response_dict['metadata']['labels']['workflows.argoproj.io/phase']
+
+def read_pod_logs_via_k8s():
+
+    """
+    Reads and Parses Pod logs using kubernetes python client
+    Note: This requires parsing the correct certificates, otherwise k8s server will deny access
+    """
+
+    # Pass the correct configurations for python to access kubernetes server
+    config.load_kube_config() 
+    configuration = client.Configuration()
+    # microk8s certificates usually stored in /var/snap/microk8s/current/certs/
+    # for full k8s, certificatates may be stored in /etc/kubernetes/pki/
+    configuration.ssl_ca_cert = '/var/snap/microk8s/current/certs/ca.crt'
+    configuration.cert_file = '/var/snap/microk8s/current/certs/server.crt'
+    configuration.key_file = '/var/snap/microk8s/current/certs/server.key'
+    # host location/port - usually listed under cluster server in kubeconfig 
+    configuration.host = 'https://127.0.0.1:16443' 
+    configuration.verify_ssl = False
+    client.Configuration.set_default(configuration)
+
+    v1 = client.CoreV1Api()
+    print("Listing pods with their IPs:")
+    # ret = v1.list_pod_for_all_namespaces(watch=False)
+    ret = v1.list_namespaced_pod(namespace='argo', watch=False)
+    for pod in ret.items:
+        print("%s\t%s\t%s" % (pod.status.pod_ip, pod.metadata.namespace, pod.metadata.name))
+        # break
+
+    log_output = v1.read_namespaced_pod_log(name='sdk-memoize-multistep-7-6-2-return-template-2133450781',
+                                        namespace='argo', container="main")
+
+
+    return log_output
 
 def submit_workflow(parameter1, parameter2, parameter3, refresh_window):
     
+     
     """
-    This part is standard procedure for submitting argo workflow via SDK 
-    See docs at https://github.com/argoproj/argo-workflows/tree/627597b5616f4d22e88b89a6d7017a67b6a4143d/sdks/python
-    --
-    use the usual api_instance.create_workflow method to submit workflow
-    We directly query the url based api for workflow status and logs
-    Alternative could be to use api_instance.get_workflow to check on workflow status - would need a 'sleep' period in-between
-    get_workflow function is defined here:  https://github.com/argoproj/argo-workflows/blob/627597b5616f4d22e88b89a6d7017a67b6a4143d/sdks/python/client/argo_workflows/api/workflow_service_api.py
-    """
-
-    """
-    Part A: Submit workflow
-    -- 
-    Simply producedure following the same pattern as Argo SDK docs
+    Part A: 
+    Submit workflow Using same producedures following the same pattern as Argo SDK docs
+    Note: api_instance.workflow_logs and api_instance.pod_logs are defunct [see: https://github.com/argoproj/argo-workflows/issues/7781#issuecomment-1094078152]
     """
     
     workflow_name = 'sdk-memoize-multistep-{0}-{1}-{2}'.format(parameter1,parameter2,parameter3)
     '''
     manifest = define_workflow(parameter1, parameter2, parameter3, workflow_name)
-
+    
     configuration = argo_workflows.Configuration(host="https://127.0.0.1:2746", ssl_ca_cert=None) 
     configuration.verify_ssl = False # notice how switch set ssl off here, since there is no parameter for this in the Configuration class https://github.com/argoproj/argo-workflows/blob/master/sdks/python/client/argo_workflows/configuration.py
 
@@ -243,80 +313,44 @@ def submit_workflow(parameter1, parameter2, parameter3, refresh_window):
 
     # pprint(api_response) # pretty print yaml/manifest which gets submitted [just for debugging]
 
-    """Part B: Monitor workflow Status 
-    --
-    1 second lag is needed for Argo API to start to show the status of running/succeeded/failed
-    Hence the use of time.sleep
-    We use 'workflows.argoproj.io/phase' (under ['metadata']['labels']) instead of 'workflows.argoproj.io/completed' since the latter is only created at the end of WF lifecycle
-    """    
     url = 'https://localhost:2746/api/v1/workflows/argo/' + workflow_name
-    i=1;  
-    while True:
-        print("[TuunV2] API GET --> Waiting {0} secs pre-workflow completion check #{1}".format(refresh_window,i))
-        time.sleep(refresh_window) # wait a predefined number of seconds to check workflow progress
 
-        print("[TuunV2] API GET --> Waiting 1 sec before first workflow completion check")
-        response = requests.get(url=url, verify=False)
-        response_dict = response.json() 
-        print("[TuunV2] TimeWindow{0} --> Status==".format(i), response_dict['metadata']['labels']['workflows.argoproj.io/phase'] ) 
-        if response_dict['metadata']['labels']['workflows.argoproj.io/phase'] == "Succeeded":
-            print("[TuunV2] --> Workflow has finished Running")
-            break  
-        i+=1  
-    
-    '''
+
     """
-    Part C [Approach A]: Scrape workflow logs via Argo workflows wepAPI 
-    Return the obj function value, Cost, and other necessary parameters
+    Part B: Monitor submitted worfklow & report if it's "succeeded" or "failed" 
+    """
+    workflow_final_state = monitor_workflow(url, refresh_window) 
+    print("[TuunV2] --> Final Workflow State == ", workflow_final_state)
+     
+    '''
+    
+    """
+    Part C: Scrape workflow logs via Kunbernetes Python Client  
+    Return the obj function value, Cost, etc
     """ 
+
+    # First, we need to get the correct pod name
     url = 'https://localhost:2746/api/v1/workflows/argo/' + workflow_name
-    log_url = 'https://localhost:2746/api/v1/workflows/argo/sdk-memoize-multistep-3-6-2/'
-    log_url += 'sdk-memoize-multistep-3-6-2-return-template-1755894561/log?logOptions.container=main'
-    response = requests.get(url = log_url, verify=False)
-    r = response.text # can't use response.json(): response for logs is not a valid JSON format
-    for line in r.splitlines(): # instead parse the text files line-by-line
-        print("LINE # I", line)
-    # print("[TuunV2] Last Pod Log -->", type(response.text), response.text)
-    # print("[TuunV2] Last Pod Log -->", type(r))
-    # print("[TuunV2] Debug -->", response.json().keys())
+    response = requests.get(url=url, verify=False)
+    response_dict = response.json() 
+    # pprint(response_dict)
+    for step in response_dict['status']['nodes']:
+        print(response_dict['status']['nodes'][step])
+        break
+        # if response_dict['status']['nodes'] == 'Pod':
+        #     response_dict['status']['nodes'].keys()
+    pod_name = response_dict['status']['nodes'].keys()
+    # print(pod_name)
+    
+    print(read_pod_logs_via_k8s())
+  
     return_value = None
         
-    return return_value 
-    
-    """
-    Part C [Approach B]: Scrape workflow logs via Kunbernetes Python Client  
-    Return same contents as Approach A above
-    """ 
-        
-    # Configs can be set in Configuration class directly or using helper utility
-    config.load_kube_config() 
-
-    configuration = client.Configuration()
-    # the below passes the API Key
-    configuration.ssl_ca_cert = '/var/snap/microk8s/current/certs/ca.crt'
-    configuration.cert_file = '/var/snap/microk8s/current/certs/server.crt'
-    configuration.key_file = '/var/snap/microk8s/current/certs/server.key'
-    # configuration.api_key['authorization'] = 'LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUREekNDQWZlZ0F3SUJBZ0lVZGhVS044UllPbUdEUStla3pEUmdMVUFsSGZZd0RRWUpLb1pJaHZjTkFRRUwKQlFBd0Z6RVZNQk1HQTFVRUF3d01NVEF1TVRVeUxqRTRNeTR4TUI0WERUSXlNRFV3TmpFNU1UTTFObG9YRFRNeQpNRFV3TXpFNU1UTTFObG93RnpFVk1CTUdBMVVFQXd3TU1UQXVNVFV5TGpFNE15NHhNSUlCSWpBTkJna3Foa2lHCjl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUExaDVMaFgvMHpoa0hDczB1UFZZQnAzcjNNK0ZyRGtQQ1lkdFIKdXc4V1AzS0oyZmsyRkl1a20zK0lGT2o2RURET01XaWZrWTNyTy8rOW1jek81VHE1UCtjcmxmRys1Yk9WR2VIRApTbUQvc1lqTkpxdk9QWUFsaEUzUWpxa2ZzNlg4ejhpQjd1bkUxSUM5ZS9veEM4R0xZYm1kQllhSU5mR0FEVE1SCjgycjM2Qk1wMmRlek05VGUrdmdhUTZZdU5EQ0hUZ2JrYVE0QmdiQWRSUzRVaUg5OS9hT1hRZmwwVThzanJSSmoKd2JqTDdOQXJxQ0F4SUtEdFhxM0ZzdERSN3cydC9xSnBLTEtoSkZ2YXd6MVI5WXA4eFRJVzJVUk1RTXBITmtZTgplem4zV3IvTE0zRGdZYndrd3VZQklSb25CNE8vRi80dHhyYTQyelhFV1Z2QldWNGVCd0lEQVFBQm8xTXdVVEFkCkJnTlZIUTRFRmdRVXEzK24ySmdDaGRUMkVkN3I3SmkxNDR4bXZsMHdId1lEVlIwakJCZ3dGb0FVcTMrbjJKZ0MKaGRUMkVkN3I3SmkxNDR4bXZsMHdEd1lEVlIwVEFRSC9CQVV3QXdFQi96QU5CZ2txaGtpRzl3MEJBUXNGQUFPQwpBUUVBUlNlVW43b3lMTys0OU1BZHdEdkhwL3FsZjBrKzZVaFNyQ0tpTkhFakJxaG9reDFuSW1pTUdoQStmWG9IClZLZm1KRkxwS0oyazl2OWFGVldlbFdSNkFvMWV4c0VZa1kxNlJDMGIveFB4aVU1cE94UkNFMllSSncvcWh5cXoKTmtNek1kaSsydElxY29oY2NOdkZhQVVBbmE5akVZckErakhaRUhsdEhUQTJxblNpRGt5K2wyZXVla08xT2FwNwpqZzRWdUo0Zklrckdob0c2RE1rSVlUQnUrZHNaRzlOdkJaU3FWY3IyZWVDa281WGU4TDU5bWVra1lwVkdBZmdtCjdmL1ZCdTc4eUphYTI3K1ZabGpJUWxZSWhpQWRzZ2d0T1RFdFBPR2RyUDdPNE8zejhDWFNQLzVzMVlVQ1RqYzMKa0tFK0VIbWVXRk5idmF5dzFrWGFQYnF5REE9PQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==' 
-    # the below tells us where to check for kube system server
-    configuration.host = 'https://127.0.0.1:16443'
-    configuration.verify_ssl = False
-    client.Configuration.set_default(configuration)
-
-    v1 = client.CoreV1Api()
-    print("Listing pods with their IPs:")
-    # ret = v1.list_pod_for_all_namespaces(watch=False)
-    ret = v1.list_namespaced_pod(namespace=argo, watch=False)
-    for pod in ret.items:
-        print("%s\t%s\t%s" % (pod.status.pod_ip, pod.metadata.namespace, pod.metadata.name))
-        # break
-
-    log_output = v1.read_namespaced_pod_log(name='sdk-memoize-multistep-7-6-2-return-template-2133450781',
-                                        namespace='argo', container="main")
-
-    print(log_output)
-    return
+    return return_value
      
   
+
+
 
 
 if __name__ == '__main__':
@@ -324,7 +358,7 @@ if __name__ == '__main__':
     This if statements allows us to run code that won't get run,
     if we import our functions defined within this file, from another python file 
     """
-    submit_workflow(7, 6, 2, refresh_window=10)
+    submit_workflow(10, 6, 6, refresh_window=10)
 
 
     # pprint(test_return_workflow('sdk-memoize-multistep-7v4lm'))
