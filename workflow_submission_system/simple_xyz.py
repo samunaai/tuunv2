@@ -36,7 +36,6 @@ import requests
 import time
 
 
-
 def define_workflow(parameter1, parameter2, parameter3, workflow_name):
 
     """
@@ -90,12 +89,7 @@ def define_workflow(parameter1, parameter2, parameter3, workflow_name):
                                         parameters=[
                                             IoArgoprojWorkflowV1alpha1Parameter(
                                                 name="priorStepsDuration",
-                                                value="{{steps.generate-artifact.startedAt}}")
-                                                # {{steps.generate-artifact.finishedAt}}
-                                                # {{steps.pass-artifact1.startedAt}}
-                                                # {{steps.pass-artifact1.finishedAt}}
-                                                # {{steps.pass-artifact2.startedAt}}
-                                                # {{steps.pass-artifact2.finishedAt}}
+                                                value="{{steps.generate-artifact.startedAt}}~{{steps.generate-artifact.finishedAt}};{{steps.pass-artifact1.startedAt}}~{{steps.pass-artifact1.finishedAt}};{{steps.pass-artifact2.startedAt}}~{{steps.pass-artifact2.finishedAt}}")
                                             ]
                                         )
                                     )]), 
@@ -206,7 +200,7 @@ def define_workflow(parameter1, parameter2, parameter3, workflow_name):
                     container=Container(
                         image='munachisonwadike/simple-xyz-pipeline', 
                         command=['sh', '-c'], 
-                        args=["echo 'Function Value:' $(cat /mnt/vol/step3.txt); echo 'Total Duration:' {{inputs.parameters.priorStepsDuration}}; echo 'Total Duration:' {{workflow.duration}} "], 
+                        args=["echo 'functionValue:' $(cat /mnt/vol/step3.txt); echo 'Total Duration:' {{inputs.parameters.priorStepsDuration}}; echo 'workflowDuration:' {{workflow.duration}} "], 
                         volume_mounts=[VolumeMount(name="workdir",mount_path="/mnt/vol")]
                     ),   
                 ),
@@ -216,11 +210,43 @@ def define_workflow(parameter1, parameter2, parameter3, workflow_name):
     
     return manifest
 
+def caculate_duration(leaf_node_name, url, workflow_name):
+
+    """
+    Function that builds on the knowledge I gained playing with `print_stepgroups_pods_duration` function
+    Should return both total pod durations and total stepgroup durations
+    """
+    response = requests.get(url=url, verify=False)
+    response_dict = response.json() 
+
+    ptr = workflow_name # pointer to root node name
+    # print("LEAFYLEAFY",leaf_node_name)
+    bit = 0
+    while True:
+        print("BLURB==>", ptr)   
+        print("herbbb==>", response_dict['status']['nodes'][ptr]['type'])   
+        # print("TOARBB==>", response_dict['status']['nodes'][ptr].keys(), "\n")   
+        print("TOARBB==>", response_dict['status']['nodes'][ptr]['startedAt'], "~", response_dict['status']['nodes'][ptr]['finishedAt'],"\n")   
+        
+        if bit==1: break
+
+        ptr = response_dict['status']['nodes'][ptr]['children'] # we are going to loop from root to leaf
+        if len(ptr) > 1: raise ValueError("[TuunV2] --> Whoops ~(`_`)~  Seems the workflow isn't a Bamboo  ")
+        ptr = ptr[0] # if we are safe and working with a bamboo, just take 1st (and thereby only) element in the list 
+        
+        if ptr==leaf_node_name: print("[TuunV2] --> We Reached The Leaf!"); bit = 1 
+  
+
+        # if response_dict['status']['nodes'] == 'Pod':
+        #     response_dict['status']['nodes'].keys()
+    podDuration = None
+    stepgroupDuration = None
+    return podDuration, stepgroupDuration
 
 
 def submit_workflow(parameter1, parameter2, parameter3, refresh_window):
     
-     
+    
     """
     Part A: 
     Submit workflow Using same producedures following the same pattern as Argo SDK docs
@@ -228,7 +254,7 @@ def submit_workflow(parameter1, parameter2, parameter3, refresh_window):
     """
     
     workflow_name = 'sdk-memoize-multistep-{0}-{1}-{2}'.format(parameter1,parameter2,parameter3)
-   
+    ''' 
     manifest = define_workflow(parameter1, parameter2, parameter3, workflow_name)
     
     configuration = argo_workflows.Configuration(host="https://127.0.0.1:2746", ssl_ca_cert=None) 
@@ -236,6 +262,7 @@ def submit_workflow(parameter1, parameter2, parameter3, refresh_window):
 
     api_client = argo_workflows.ApiClient(configuration)
     api_instance = workflow_service_api.WorkflowServiceApi(api_client)
+    begin_time =  time.time()
     api_response = api_instance.create_workflow( 
         namespace='argo',
         body=IoArgoprojWorkflowV1alpha1WorkflowCreateRequest(workflow=manifest),
@@ -250,33 +277,33 @@ def submit_workflow(parameter1, parameter2, parameter3, refresh_window):
     Part B: Monitor submitted worfklow & report if it's "succeeded" or "failed" 
     """
     workflow_final_state = monitor_workflow(url, refresh_window) 
+    pythonDuration  = time.time() - begin_time
     print("[TuunV2] --> Final Workflow State == ", workflow_final_state)
      
+    '''
      
-    
     """
     Part C: Scrape workflow logs via Kunbernetes Python Client  
     Return the obj function value, Cost, etc
     """ 
 
-    # First, we need to get the correct pod name
+    # Get pod name corresponding to the last workflow step (the pod whose logs we place the return values within)
     url = 'https://localhost:2746/api/v1/workflows/argo/' + workflow_name
-    response = requests.get(url=url, verify=False)
-    response_dict = response.json() 
+    response = requests.get(url=url, verify=False); response_dict = response.json() 
     # pprint(response_dict)
-    for step in response_dict['status']['nodes']:
-        print(response_dict['status']['nodes'][step])
-        break
-        # if response_dict['status']['nodes'] == 'Pod':
-        #     response_dict['status']['nodes'].keys()
-    pod_name = response_dict['status']['nodes'].keys()
+    leaf_node_name = response_dict['status']['nodes'][workflow_name]['outboundNodes'] # Among `response_dict['status']['nodes'].keys())`, the key which is exactly the same as workflow_name is our root node workflow tree
+    if len(leaf_node_name) > 1:
+        raise ValueError("[TuunV2] ~ Whoops :( . Looks like There's more than 1 leaf ")
+    # print(leaf_node_name)
+    sumDuration = print_stepgroups_pods_duration(leaf_node_name[0], url, workflow_name)
+
+    # pod_name = None
     # print(pod_name)
     
-    print(read_pod_logs_via_k8s())
-  
-    return_value = None
+    # print(read_pod_logs_via_k8s())
         
-    return return_value
+    # return obj_value, pythonDuration, sumDuration, workflowDuration
+    return 
      
   
 
@@ -288,7 +315,7 @@ if __name__ == '__main__':
     This if statements allows us to run code that won't get run,
     if we import our functions defined within this file, from another python file 
     """
-    submit_workflow(1, 6, 6, refresh_window=10)
+    submit_workflow(4, 6, 9, refresh_window=10)
 
 
     # pprint(test_return_workflow('sdk-memoize-multistep-7v4lm'))

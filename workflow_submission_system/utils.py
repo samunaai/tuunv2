@@ -34,6 +34,34 @@ def monitor_workflow(url, refresh_window):
 
     return response_dict['metadata']['labels']['workflows.argoproj.io/phase']
 
+def print_stepgroups_pods_duration(leaf_node_name, url, workflow_name):
+
+    """
+    Function that prints step durations for pods and for step groups separately
+    Wrote this just to help us get a better sense of duration as reported by argo
+    """
+    response = requests.get(url=url, verify=False)
+    response_dict = response.json() 
+
+    ptr = workflow_name # pointer to root node name
+    # print("LEAFYLEAFY",leaf_node_name)
+    bit = 0
+    while True:
+        print("BLURB==>", ptr)   
+        print("herbbb==>", response_dict['status']['nodes'][ptr]['type'])   
+        # print("TOARBB==>", response_dict['status']['nodes'][ptr].keys(), "\n")   
+        print("TOARBB==>", response_dict['status']['nodes'][ptr]['startedAt'], "~", response_dict['status']['nodes'][ptr]['finishedAt'],"\n")   
+        
+        if bit==1: break
+
+        ptr = response_dict['status']['nodes'][ptr]['children'] # we are going to loop from root to leaf
+        if len(ptr) > 1: raise ValueError("[TuunV2] --> Whoops ~(`_`)~  Seems the workflow isn't a Bamboo  ")
+        ptr = ptr[0] # if we are safe and working with a bamboo, just take 1st (and thereby only) element in the list 
+        
+        if ptr==leaf_node_name: print("[TuunV2] --> We Reached The Leaf!"); bit = 1 
+    return None
+
+
 
 def read_pod_logs_via_k8s():
 
