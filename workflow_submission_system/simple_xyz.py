@@ -24,7 +24,6 @@ from argo_workflows.model.persistent_volume_claim_volume_source import Persisten
 from argo_workflows.model.volume import Volume
 from argo_workflows.model.volume_mount import VolumeMount
 
-from datetime import datetime
 from pprint import pprint
 from utils import *
 
@@ -258,26 +257,22 @@ def submit_workflow(parameter1, parameter2, parameter3, refresh_window):
     # Get pod name corresponding to the last workflow step (the pod whose logs we place the return values within)
     url = 'https://localhost:2746/api/v1/workflows/argo/' + workflow_name
     response = requests.get(url=url, verify=False); response_dict = response.json() 
-    # pprint(response_dict)
+    # pprint(response_dict) # Used this for testing
+    print(response_dict.keys())
     leaf_node_name = response_dict['status']['nodes'][workflow_name]['outboundNodes'] # Among `response_dict['status']['nodes'].keys())`, the key which is exactly the same as workflow_name is our root node workflow tree
     if len(leaf_node_name) > 1:
         raise ValueError("[TuunV2] ~ Whoops :( . Looks like There's more than 1 leaf ")
-    # print(leaf_node_name)
-    # print_stepgroups_pods_duration(leaf_node_name[0], url, workflow_name) # Used this for testing
+
     wf_time, pod_total, sg_total = caculate_duration(leaf_node_name[0], url, workflow_name) # Used this for testing
 
-    print("****!!!!!!!! WFTIME, PODTOTAL, STEPGROUP_TOTAL:", wf_time, pod_total, sg_total)
-    # pod_name = None
-    # print(pod_name)
-    
-    # print(read_pod_logs_via_k8s())
+    log_name = response_dict['status']['nodes'][leaf_node_name[0]]['outputs']['artifacts'][0]['s3']['key']
+    func_val = read_pod_logs_via_k8s(log_name.split('/')[1])
+    # print_stepgroups_pods_duration(leaf_node_name[0], url, workflow_name) # Used this for testing
         
-    # return obj_value, pythonDuration, sumDuration, workflowDuration
+    print("****!!!!!!!! FUNCVAL, WFTIME, PODTOTAL, STEPGROUP_TOTAL:", type(func_val), func_val, wf_time, pod_total, sg_total)
     return func_val, wf_time, pod_total, sg_total
      
-  
-
-
+   
 
 
 if __name__ == '__main__':

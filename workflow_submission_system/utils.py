@@ -4,7 +4,7 @@ The core purpose of this Python file is to store "helper functions" ~
 e.g functions which helps us monitor workflow logs and return objective values.
 
 """    
-
+from datetime import datetime
 from kubernetes import client, config
 
 import requests  
@@ -79,7 +79,7 @@ def caculate_duration(leaf_node_name, url, workflow_name):
  
     return wf_time, pod_total, sg_total
  
-def read_pod_logs_via_k8s():
+def read_pod_logs_via_k8s(pod_name):
 
     """
     Reads and Parses Pod logs using kubernetes python client
@@ -99,19 +99,16 @@ def read_pod_logs_via_k8s():
     configuration.verify_ssl = False
     client.Configuration.set_default(configuration)
 
-    v1 = client.CoreV1Api()
-    print("Listing pods with their IPs:")
-    # ret = v1.list_pod_for_all_namespaces(watch=False)
-    ret = v1.list_namespaced_pod(namespace='argo', watch=False)
-    for pod in ret.items:
-        print("%s\t%s\t%s" % (pod.status.pod_ip, pod.metadata.namespace, pod.metadata.name))
-        # break
+    v1 = client.CoreV1Api() 
 
-    log_output = v1.read_namespaced_pod_log(name='sdk-memoize-multistep-7-6-2-return-template-2133450781',
+    # read a pod in a given namespace - see  https://raw.githubusercontent.com/kubernetes-client/python/master/kubernetes/docs/CoreV1Api.md
+    log_output = v1.read_namespaced_pod_log(name=pod_name,
                                         namespace='argo', container="main")
 
-
-    return log_output
+    for line in log_output.splitlines():
+    	if line[:8]=="funcVal:":
+    		return int(line[8:])
+    return None
 
 def print_stepgroups_pods_duration(leaf_node_name, url, workflow_name):
 
