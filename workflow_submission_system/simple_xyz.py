@@ -32,6 +32,8 @@ import json
 import requests  
 import time
 
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning) # make sure to remove this later in production
 
 def define_workflow(parameter1, parameter2, parameter3, workflow_name):
 
@@ -221,7 +223,7 @@ def submit_workflow(parameter1, parameter2, parameter3, refresh_window):
     """
     
     workflow_name = 'sdk-memoize-multistep-{0}-{1}-{2}'.format(parameter1,parameter2,parameter3)
-    ''' 
+ 
     manifest = define_workflow(parameter1, parameter2, parameter3, workflow_name)
     
     configuration = argo_workflows.Configuration(host="https://127.0.0.1:2746", ssl_ca_cert=None) 
@@ -247,7 +249,7 @@ def submit_workflow(parameter1, parameter2, parameter3, refresh_window):
     pythonDuration  = time.time() - begin_time
     print("[TuunV2] --> Final Workflow State == ", workflow_final_state)
      
-    '''
+ 
      
     """
     Part C: Scrape workflow logs via Kunbernetes Python Client  
@@ -258,7 +260,6 @@ def submit_workflow(parameter1, parameter2, parameter3, refresh_window):
     url = 'https://localhost:2746/api/v1/workflows/argo/' + workflow_name
     response = requests.get(url=url, verify=False); response_dict = response.json() 
     # pprint(response_dict) # Used this for testing
-    print(response_dict.keys())
     leaf_node_name = response_dict['status']['nodes'][workflow_name]['outboundNodes'] # Among `response_dict['status']['nodes'].keys())`, the key which is exactly the same as workflow_name is our root node workflow tree
     if len(leaf_node_name) > 1:
         raise ValueError("[TuunV2] ~ Whoops :( . Looks like There's more than 1 leaf ")
@@ -269,7 +270,7 @@ def submit_workflow(parameter1, parameter2, parameter3, refresh_window):
     func_val = read_pod_logs_via_k8s(log_name.split('/')[1])
     # print_stepgroups_pods_duration(leaf_node_name[0], url, workflow_name) # Used this for testing
         
-    print("****!!!!!!!! FUNCVAL, WFTIME, PODTOTAL, STEPGROUP_TOTAL:", type(func_val), func_val, wf_time, pod_total, sg_total)
+    print("[TuunV2] --> FunctionValue & Workflow Times [Total, PodTotal, StepGroupTotal]:", func_val, "& [", wf_time, pod_total, sg_total,"]")
     return func_val, wf_time, pod_total, sg_total
      
    
@@ -280,7 +281,7 @@ if __name__ == '__main__':
     This if statements allows us to run code that won't get run,
     if we import our functions defined within this file, from another python file 
     """
-    submit_workflow(4, 6, 9, refresh_window=10)
+    submit_workflow(3, 6, 9, refresh_window=10)
 
 
     # pprint(test_return_workflow('sdk-memoize-multistep-7v4lm'))

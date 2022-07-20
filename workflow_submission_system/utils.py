@@ -75,8 +75,10 @@ def caculate_duration(leaf_node_name, url, workflow_name):
         ptr = response_dict['status']['nodes'][ptr]['children'] # we are going to loop from root to leaf
         if len(ptr) > 1: raise ValueError("[TuunV2] --> Whoops ~(`_`)~  Seems the workflow isn't a Bamboo  ")
         ptr = ptr[0] # if we are safe and working with a bamboo, just take 1st (and thereby only) element in the list 
-        if ptr==leaf_node_name: print("[TuunV2] --> We Reached The Leaf!"); bit = 1 # (B) using this to make sure the loop stops at the last node
- 
+        if ptr==leaf_node_name: 
+        	bit = 1; # (B) using this to make sure the loop stops at the last node
+        	# print("[TuunV2] --> We Reached The Leaf!");  
+        	
     return wf_time, pod_total, sg_total
  
 def read_pod_logs_via_k8s(pod_name):
