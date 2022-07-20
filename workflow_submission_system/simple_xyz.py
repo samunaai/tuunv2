@@ -24,10 +24,8 @@ from argo_workflows.model.persistent_volume_claim_volume_source import Persisten
 from argo_workflows.model.volume import Volume
 from argo_workflows.model.volume_mount import VolumeMount
 
-
+from datetime import datetime
 from pprint import pprint
-
-
 from utils import *
 
 import argo_workflows
@@ -200,7 +198,8 @@ def define_workflow(parameter1, parameter2, parameter3, workflow_name):
                     container=Container(
                         image='munachisonwadike/simple-xyz-pipeline', 
                         command=['sh', '-c'], 
-                        args=["echo 'functionValue:' $(cat /mnt/vol/step3.txt); echo 'Total Duration:' {{inputs.parameters.priorStepsDuration}}; echo 'workflowDuration:' {{workflow.duration}} "], 
+                        # args=["echo 'functionValue:' $(cat /mnt/vol/step3.txt); echo 'Total Duration:' {{inputs.parameters.priorStepsDuration}}; echo 'workflowDuration:' {{workflow.duration}} "], 
+                        args=["echo 'funcVal:' $(cat /mnt/vol/step3.txt);"], 
                         volume_mounts=[VolumeMount(name="workdir",mount_path="/mnt/vol")]
                     ),   
                 ),
@@ -210,38 +209,7 @@ def define_workflow(parameter1, parameter2, parameter3, workflow_name):
     
     return manifest
 
-def caculate_duration(leaf_node_name, url, workflow_name):
 
-    """
-    Function that builds on the knowledge I gained playing with `print_stepgroups_pods_duration` function
-    Should return both total pod durations and total stepgroup durations
-    """
-    response = requests.get(url=url, verify=False)
-    response_dict = response.json() 
-
-    ptr = workflow_name # pointer to root node name
-    # print("LEAFYLEAFY",leaf_node_name)
-    bit = 0
-    while True:
-        print("BLURB==>", ptr)   
-        print("herbbb==>", response_dict['status']['nodes'][ptr]['type'])   
-        # print("TOARBB==>", response_dict['status']['nodes'][ptr].keys(), "\n")   
-        print("TOARBB==>", response_dict['status']['nodes'][ptr]['startedAt'], "~", response_dict['status']['nodes'][ptr]['finishedAt'],"\n")   
-        
-        if bit==1: break
-
-        ptr = response_dict['status']['nodes'][ptr]['children'] # we are going to loop from root to leaf
-        if len(ptr) > 1: raise ValueError("[TuunV2] --> Whoops ~(`_`)~  Seems the workflow isn't a Bamboo  ")
-        ptr = ptr[0] # if we are safe and working with a bamboo, just take 1st (and thereby only) element in the list 
-        
-        if ptr==leaf_node_name: print("[TuunV2] --> We Reached The Leaf!"); bit = 1 
-  
-
-        # if response_dict['status']['nodes'] == 'Pod':
-        #     response_dict['status']['nodes'].keys()
-    podDuration = None
-    stepgroupDuration = None
-    return podDuration, stepgroupDuration
 
 
 def submit_workflow(parameter1, parameter2, parameter3, refresh_window):
@@ -295,15 +263,17 @@ def submit_workflow(parameter1, parameter2, parameter3, refresh_window):
     if len(leaf_node_name) > 1:
         raise ValueError("[TuunV2] ~ Whoops :( . Looks like There's more than 1 leaf ")
     # print(leaf_node_name)
-    sumDuration = print_stepgroups_pods_duration(leaf_node_name[0], url, workflow_name)
+    # print_stepgroups_pods_duration(leaf_node_name[0], url, workflow_name) # Used this for testing
+    wf_time, pod_total, sg_total = caculate_duration(leaf_node_name[0], url, workflow_name) # Used this for testing
 
+    print("****!!!!!!!! WFTIME, PODTOTAL, STEPGROUP_TOTAL:", wf_time, pod_total, sg_total)
     # pod_name = None
     # print(pod_name)
     
     # print(read_pod_logs_via_k8s())
         
     # return obj_value, pythonDuration, sumDuration, workflowDuration
-    return 
+    return func_val, wf_time, pod_total, sg_total
      
   
 

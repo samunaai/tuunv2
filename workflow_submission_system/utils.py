@@ -10,6 +10,7 @@ from kubernetes import client, config
 import requests  
 import time
 
+
 def monitor_workflow(url, refresh_window):
 
     """
@@ -34,35 +35,50 @@ def monitor_workflow(url, refresh_window):
 
     return response_dict['metadata']['labels']['workflows.argoproj.io/phase']
 
-def print_stepgroups_pods_duration(leaf_node_name, url, workflow_name):
+def time_difference(start_time, end_time):
+    """Use python library datetime, to parse Argo timestamps properly"""
+    dt_object1 = datetime.strptime(start_time, "%Y-%m-%dT%H:%M:%SZ")
+    dt_object2 = datetime.strptime(end_time, "%Y-%m-%dT%H:%M:%SZ")
+    return (dt_object2 - dt_object1).total_seconds()
+
+def caculate_duration(leaf_node_name, url, workflow_name):
 
     """
-    Function that prints step durations for pods and for step groups separately
-    Wrote this just to help us get a better sense of duration as reported by argo
+    Function that builds on the knowledge I gained playing with `print_stepgroups_pods_duration` function
+    Should return both total pod durations and total stepgroup durations
     """
     response = requests.get(url=url, verify=False)
     response_dict = response.json() 
 
     ptr = workflow_name # pointer to root node name
-    # print("LEAFYLEAFY",leaf_node_name)
     bit = 0
-    while True:
-        print("BLURB==>", ptr)   
-        print("herbbb==>", response_dict['status']['nodes'][ptr]['type'])   
-        # print("TOARBB==>", response_dict['status']['nodes'][ptr].keys(), "\n")   
-        print("TOARBB==>", response_dict['status']['nodes'][ptr]['startedAt'], "~", response_dict['status']['nodes'][ptr]['finishedAt'],"\n")   
-        
-        if bit==1: break
+    wf_time = 0; pod_total = 0; sg_total = 0; # times to be returned from the parses
 
+    while True:
+        '''---These first lines are concerned with collecting time at current node---'''
+         
+        node_type = response_dict['status']['nodes'][ptr]['type']
+        start_time = response_dict['status']['nodes'][ptr]['startedAt']
+        end_time = response_dict['status']['nodes'][ptr]['finishedAt']
+
+        node_time = time_difference(start_time, end_time)
+        
+        if node_type == "Steps":
+            wf_time = node_time
+        elif node_type == "StepGroup":
+            sg_total += node_time
+        elif node_type == "Pod":
+            pod_total += node_time  
+
+        '''---The below lines are concerned with looping throught the workflow graph/tree correctly---'''
+        if bit==1: break # (A) using this to make sure the loop stops at the last node 
         ptr = response_dict['status']['nodes'][ptr]['children'] # we are going to loop from root to leaf
         if len(ptr) > 1: raise ValueError("[TuunV2] --> Whoops ~(`_`)~  Seems the workflow isn't a Bamboo  ")
         ptr = ptr[0] # if we are safe and working with a bamboo, just take 1st (and thereby only) element in the list 
-        
-        if ptr==leaf_node_name: print("[TuunV2] --> We Reached The Leaf!"); bit = 1 
-    return None
-
-
-
+        if ptr==leaf_node_name: print("[TuunV2] --> We Reached The Leaf!"); bit = 1 # (B) using this to make sure the loop stops at the last node
+ 
+    return wf_time, pod_total, sg_total
+ 
 def read_pod_logs_via_k8s():
 
     """
@@ -97,7 +113,32 @@ def read_pod_logs_via_k8s():
 
     return log_output
 
+def print_stepgroups_pods_duration(leaf_node_name, url, workflow_name):
 
+    """
+    Function that prints step durations for pods and for step groups separately
+    Wrote this just to help us get a better sense of duration as reported by argo
+    """
+    response = requests.get(url=url, verify=False)
+    response_dict = response.json() 
+
+    ptr = workflow_name # pointer to root node name
+    # print("LEAFYLEAFY",leaf_node_name)
+    bit = 0
+    while True:
+        print("BLURB==>", ptr)   
+        print("herbbb==>", response_dict['status']['nodes'][ptr]['type'])   
+        # print("TOARBB==>", response_dict['status']['nodes'][ptr].keys(), "\n")   
+        print("TOARBB==>", response_dict['status']['nodes'][ptr]['startedAt'], "~", response_dict['status']['nodes'][ptr]['finishedAt'],"\n")   
+        
+        if bit==1: break
+
+        ptr = response_dict['status']['nodes'][ptr]['children'] # we are going to loop from root to leaf
+        if len(ptr) > 1: raise ValueError("[TuunV2] --> Whoops ~(`_`)~  Seems the workflow isn't a Bamboo  ")
+        ptr = ptr[0] # if we are safe and working with a bamboo, just take 1st (and thereby only) element in the list 
+        
+        if ptr==leaf_node_name: print("[TuunV2] --> We Reached The Leaf!"); bit = 1 
+    return None
 
 def read_pod_logs_via_argo():
 
