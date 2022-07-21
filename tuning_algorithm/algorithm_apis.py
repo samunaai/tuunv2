@@ -92,8 +92,9 @@ class RandomSearch(TuningAlgorithm):
 		# val = x**2 + y**2 + z**2
 		with open(os.devnull, "w") as f, contextlib.redirect_stdout(f):
 			print("This won't be printed.") # special block to suppress print statements
+		print("{TuunV2-TA} => [New] Submitting New workflow to WSS (workflow submission system)")
 		val, cost, _, _ = submit_workflow(x, y, z, 20)
-		print("{TuunV2-TA} => WSS return value:"+str(val)+"; Argo Time:"+str(cost)+"s")
+		print("{TuunV2-TA} => Prev WSS return value:"+str(val)+"; Argo Time:"+str(cost)+"s")
 		return val
 
 	def update(self, current_val, x, y, z):
