@@ -11,10 +11,17 @@ in all it's subclasses
 @abstractmethod decorator must be used at least once for the TuningAlgorithm
 to count as an abstract class, and have all such features see explanation here: https://youtu.be/TeDlx2Klij0
 '''
+import sys
+sys.path.append('../workflow_submission_system')
+
+'''- The above import just lets us use WSS '''
 
 from abc import ABC, abstractmethod
+from simple_xyz import define_workflow, submit_workflow
 
+import contextlib
 import numpy as np
+import os
 import time
 
 
@@ -29,14 +36,14 @@ class TuningAlgorithm(ABC):
 		pass
 
 	@abstractmethod
-  	def wss(self):
-  		"""sends set of hyperparameters 
+	def wss(self):
+		"""sends set of hyperparameters 
 		to workflow submission system
-  		i.e our pipeline which runs 
-  		via Argo workflows SDK"""
-  		pass
+		i.e our pipeline which runs 
+		via Argo workflows SDK"""
+		pass
 
-  	@abstractmethod
+	@abstractmethod
 	def update(self):
 		""" updates the 'thing' that helps us
 		pick new query points: e.g for gridsearch we 
@@ -70,7 +77,7 @@ class RandomSearch(TuningAlgorithm):
 		self.num_iters = iters
 
 		self.best_val = 1000
-		print("Initial Best is =>" self.best_val)
+		print("{TuunV2-TA} => Initial Best is:", self.best_val)
 		self.best_params = [None, None, None]
 
 	def suggest(self):
@@ -82,31 +89,38 @@ class RandomSearch(TuningAlgorithm):
 		return x, y, z
 
 	def wss(self, x, y, z):
-		val = x**2 + y**2 + z**2
+		# val = x**2 + y**2 + z**2
+		with open(os.devnull, "w") as f, contextlib.redirect_stdout(f):
+			print("This won't be printed.") # special block to suppress print statements
+		val, cost, _, _ = submit_workflow(x, y, z, 20)
+		print("{TuunV2-TA} => WSS return value:"+str(val)+"; Argo Time:"+str(cost)+"s")
 		return val
 
 	def update(self, current_val, x, y, z):
-		if current_val < self.best
-			print("We have a hit!")
-			time.sleep(5)
+		if current_val < self.best_val:
+			# print("{TuunV2-TA} We have a hit!")
 			self.best_val = current_val
 			self.best_params = [x, y, z]
-			print("New Best is =>" self.best_val)
-			
+			print("{TuunV2-TA} => New Best is:", self.best_val)
+		return
+
 	def loop(self):
-		for _ in range(self.num_iters):
-			print("RandomSearch is running")
+		for i in range(self.num_iters):
+			# print("Random Search: trial #{0}".format(str(i)))
 			x, y, z = self.suggest()
 			val = self.wss(x, y, z)
 			self.update(val, x, y, z)
-			time.sleep(1) # Sleep for 3 seconds
+			# time.sleep()  
+			# break
+		print("{TuunV2-TA} => FinalBest Value is", self.best_val)
+		return
 
-class GridSearch(TuningAlgorithm)
+class GridSearch(TuningAlgorithm):
+	# TO-DO
 	def __init__(self, ranges):
 		"""create list of values
 		based on provided ranges"""
-
-		# TO-DO
+		
 		self.list = None
 
 		pass
@@ -125,7 +139,9 @@ class GridSearch(TuningAlgorithm)
 	def loop(self):
 		print("GridSearch is now running")
 
-class VanillaBO(TuningAlgorithm)
+class VanillaBO(TuningAlgorithm):
+	# TO-DO
+
 	def suggest(self):
 		"""picks next val by maximing
 		acquisition function"""
@@ -145,8 +161,5 @@ class VanillaBO(TuningAlgorithm)
 
 
 if __name__ == '__main__':
-	r = RandomSearch()
-	r.run_algorithm_loop()
-
-	t = TuningAlgorithm()
-
+	r = RandomSearch([0,10],[0,10],[0,10], iters=15)
+	r.loop()

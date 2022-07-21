@@ -232,10 +232,14 @@ def submit_workflow(parameter1, parameter2, parameter3, refresh_window):
     api_client = argo_workflows.ApiClient(configuration)
     api_instance = workflow_service_api.WorkflowServiceApi(api_client)
     begin_time =  time.time()
-    api_response = api_instance.create_workflow( 
-        namespace='argo',
-        body=IoArgoprojWorkflowV1alpha1WorkflowCreateRequest(workflow=manifest),
-        _check_return_type=False)
+    try:
+        api_response = api_instance.create_workflow( 
+            namespace='argo',
+            body=IoArgoprojWorkflowV1alpha1WorkflowCreateRequest(workflow=manifest),
+            _check_return_type=False)
+    except:
+        refresh_window = 0 # just check the status of the workflow since its been run before
+        print("\t\t[TuunV2-WSS] ~ Submitted Workflow Already Exists! Using Previous Values.") 
 
     # pprint(api_response) # pretty print yaml/manifest which gets submitted [just for debugging]
 
@@ -247,7 +251,7 @@ def submit_workflow(parameter1, parameter2, parameter3, refresh_window):
     """
     workflow_final_state = monitor_workflow(url, refresh_window) 
     pythonDuration  = time.time() - begin_time
-    print("[TuunV2] --> Final Workflow State == ", workflow_final_state)
+    print("\t\t\t\t[TuunV2-WSS] --> Final Workflow State == ", workflow_final_state)
      
  
      
@@ -262,7 +266,7 @@ def submit_workflow(parameter1, parameter2, parameter3, refresh_window):
     # pprint(response_dict) # Used this for testing
     leaf_node_name = response_dict['status']['nodes'][workflow_name]['outboundNodes'] # Among `response_dict['status']['nodes'].keys())`, the key which is exactly the same as workflow_name is our root node workflow tree
     if len(leaf_node_name) > 1:
-        raise ValueError("[TuunV2] ~ Whoops :( . Looks like There's more than 1 leaf ")
+        raise ValueError("\t\t[TuunV2-WSS] ~ Whoops! Looks like There's more than 1 leaf ")
 
     wf_time, pod_total, sg_total = caculate_duration(leaf_node_name[0], url, workflow_name) # Used this for testing
 
@@ -270,7 +274,7 @@ def submit_workflow(parameter1, parameter2, parameter3, refresh_window):
     func_val = read_pod_logs_via_k8s(log_name.split('/')[1])
     # print_stepgroups_pods_duration(leaf_node_name[0], url, workflow_name) # Used this for testing
         
-    print("[TuunV2] --> FunctionValue & Workflow Times [Total, PodTotal, StepGroupTotal]:", func_val, "& [", wf_time, pod_total, sg_total,"]")
+    print("\t\t\t\t[TuunV2-WSS] ++> F-val & WSS Times [Total, PodTotal, StepGroupTotal]:", func_val, "& ["+str(wf_time)+", "+str(pod_total)+", "+str(sg_total)+"]")
     return func_val, wf_time, pod_total, sg_total
      
    
@@ -281,7 +285,7 @@ if __name__ == '__main__':
     This if statements allows us to run code that won't get run,
     if we import our functions defined within this file, from another python file 
     """
-    submit_workflow(3, 6, 9, refresh_window=10)
+    submit_workflow(5, 4, 9, refresh_window=10)
 
 
     # pprint(test_return_workflow('sdk-memoize-multistep-7v4lm'))

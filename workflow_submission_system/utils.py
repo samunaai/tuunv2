@@ -20,16 +20,16 @@ def monitor_workflow(url, refresh_window):
     Hence the use of time.sleep
     We use 'workflows.argoproj.io/phase' (under ['metadata']['labels']) instead of 'workflows.argoproj.io/completed' since the latter is only created at the end of WF lifecycle
     """    
-
+    
     i=1;  
     while True:
-        print("[TuunV2] API GET --> Waiting {0} secs pre-workflow completion check #{1}".format(refresh_window,i))
+        print("\t\t[TuunV2-WSS] .. Waiting {0} secs pre-workflow completion check #{1}".format(refresh_window,i))
         time.sleep(refresh_window) # wait a predefined number of seconds to check workflow progress
         response = requests.get(url=url, verify=False)
         response_dict = response.json() 
-        print("[TuunV2] TimeWindow{0} --> Status ==".format(i), response_dict['metadata']['labels']['workflows.argoproj.io/phase'] ) 
+        print("\t\t[TuunV2-WSS] .. Status @ time window{0} ==".format(i), response_dict['metadata']['labels']['workflows.argoproj.io/phase'] ) 
         if response_dict['metadata']['labels']['workflows.argoproj.io/phase'] != "Running":
-            print("[TuunV2] --> Workflow has finished Running")
+            print("\t\t\t\t[TuunV2-WSS] ++> Workflow has finished Running! ")
             break  
         i+=1  
 
