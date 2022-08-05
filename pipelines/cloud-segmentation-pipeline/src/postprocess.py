@@ -1,11 +1,12 @@
-import os
-
 import cv2
 import numpy as np
+import os
 import pandas as pd
 import segmentation_models_pytorch as smp
+import time
 import torch
 import tqdm
+
 from hydra.utils import get_original_cwd
 from omegaconf import DictConfig
 from sklearn.model_selection import train_test_split
@@ -17,13 +18,15 @@ from src.utils import mask2rle, post_process, sigmoid, simple_dice
 
 
 def postprocess(cfg: DictConfig):
-    df_train = pd.read_csv(os.path.join(get_original_cwd(), cfg.data_path, "train.csv"))
+    time_start = time.time()
+    df_train = pd.read_csv(os.path.join(get_original_cwd(), cfg.masks_csv_out))
     model = smp.Unet(
         encoder_name=cfg.encoder,
         encoder_weights="imagenet",
         classes=4,
         activation=None,
-    ).cuda()
+    )#.cuda()
+    model = torch.nn.DataParallel(model, device_ids=[0, 1]).cuda()
     model.load_state_dict(
         torch.load(os.path.join(get_original_cwd(), cfg.checkpoint_dir, "best.pth"))[
             "state_dict"
@@ -40,14 +43,14 @@ def postprocess(cfg: DictConfig):
     )
     _, valid_ids = train_test_split(
         id_mask_count["img_id"].values,
-        random_state=42,
+        random_state=cfg.random_seed,
         stratify=id_mask_count["count"],
         test_size=cfg.test_size,
     )
     preprocessing_fn = smp.encoders.get_preprocessing_fn(cfg.encoder, "imagenet")
     valid_dataset = CloudDataset(
         df=df_train,
-        cfg=cfg,
+        image_in_dir=cfg.image_dir_out,
         img_ids=valid_ids,
         transforms=get_valid_aug(),
         preprocessing=get_preprocessing(preprocessing_fn),
@@ -108,4 +111,5 @@ def postprocess(cfg: DictConfig):
     )
     final_dice = np.array(dices).mean()
     print(f"Dice={final_dice}")
-    return final_dice
+    time_end = time.time()
+    return final_dice, time.strftime("%Hh%Mm%Ss", time.gmtime(time_end - time_start))
