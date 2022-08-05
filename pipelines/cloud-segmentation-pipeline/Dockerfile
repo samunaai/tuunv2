@@ -1,3 +1,5 @@
+# Used dokai base as a template: https://github.com/osai-ai/dokai/blob/master/docker/Dockerfile.base
+
 # See latest cuda tags here: https://hub.docker.com/r/nvidia/cuda/tags
 FROM nvidia/cuda:11.4.0-devel-ubuntu18.04
 
