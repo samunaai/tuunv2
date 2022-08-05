@@ -153,11 +153,8 @@ def train(cfg: DictConfig, run):
                 )
             )
 
-            try: # try to make the checkpoint directory if it doesn't already exist
-                os.mkdir(os.path.join(get_original_cwd(), cfg.checkpoint_dir))
-            except OSError as error:
-                print(error)
-
+            os.makedirs(os.path.join(get_original_cwd(), cfg.checkpoint_dir), exist_ok=True)
+             
             torch.save(
                 {"state_dict": model.state_dict()},
                 os.path.join(get_original_cwd(), cfg.checkpoint_dir, "best.pth"),
