@@ -1,30 +1,39 @@
-random_seed: 80
-debug: false
-test_size: 0.3
+# specify pre-or-post-processing, or training
+action: "insert-here"
 
 # preprocessing
-
-data_path: "../../../datasets/understanding_cloud_organization"
-image_out_dir: "../artifacts/images_out"
-masks_out_dir: "../artifacts/masks_out"
+images_dir_in: "datasets/understanding_cloud_organization/train_images"
+image_dir_out: "datasets/understanding_cloud_organization/resized_imgs_masks/384_576"
+masks_csv_in: "datasets/understanding_cloud_organization/train.csv"
+masks_csv_out: "datasets/understanding_cloud_organization/resized_imgs_masks/384_576.csv"
+ori_size: [1400, 2100]
 resize_height: 320 # have to be divisible by 32 because of Unet
 resize_width: 640 # have to be divisible by 32 because of Unet
 device: gpu
-batch_size: 32
 
-#train
-image_in_dir: "../artifacts/images_out"
-masks_in_dir: "../artifacts/masks_out"
-checkpoint_dir: "./checkpoints"
-epochs: 1
+
+# train
+batch_size: 8
+# batch_size: 32
+checkpoint_dir: "checkpoints/"
+epochs: s
 optimizer: Adam
 arch: Unet
 encoder: resnet18
 lr_encoder: 1e-3
 lr_decoder: 1e-2
-num_workers: 16
+num_workers: 1
+# num_workers: 16
 
 
-#postprocess
+
+# postprocess
 threshold: 0.4
 min_mask_size: 10000
+out_dir_dice: ''
+
+# miscellaneous
+random_seed: 80
+debug: False
+test_size: 0.3
+log_wandb: False

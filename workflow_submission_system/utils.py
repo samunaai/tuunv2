@@ -41,7 +41,7 @@ def time_difference(start_time, end_time):
     dt_object2 = datetime.strptime(end_time, "%Y-%m-%dT%H:%M:%SZ")
     return (dt_object2 - dt_object1).total_seconds()
 
-def caculate_duration(leaf_node_name, url, workflow_name):
+def calculate_duration(leaf_node_name, url, workflow_name):
 
     """
     Function that builds on the knowledge I gained playing with `print_stepgroups_pods_duration` function
@@ -53,6 +53,7 @@ def caculate_duration(leaf_node_name, url, workflow_name):
     ptr = workflow_name # pointer to root node name
     bit = 0
     wf_time = 0; pod_total = 0; sg_total = 0; # times to be returned from the parses
+    pod_runtimes_list = []
 
     while True:
         '''---These first lines are concerned with collecting time at current node---'''
@@ -69,7 +70,7 @@ def caculate_duration(leaf_node_name, url, workflow_name):
             sg_total += node_time
         elif node_type == "Pod":
             pod_total += node_time  
-
+            pod_runtimes_list.append(node_time)
         '''---The below lines are concerned with looping throught the workflow graph/tree correctly---'''
         if bit==1: break # (A) using this to make sure the loop stops at the last node 
         ptr = response_dict['status']['nodes'][ptr]['children'] # we are going to loop from root to leaf
@@ -79,7 +80,7 @@ def caculate_duration(leaf_node_name, url, workflow_name):
         	bit = 1; # (B) using this to make sure the loop stops at the last node
         	# print("[TuunV2] --> We Reached The Leaf!");  
         	
-    return wf_time, pod_total, sg_total
+    return wf_time, pod_total, sg_total, pod_runtimes_list
  
 def read_pod_logs_via_k8s(pod_name):
 
@@ -109,7 +110,7 @@ def read_pod_logs_via_k8s(pod_name):
 
     for line in log_output.splitlines():
     	if line[:8]=="funcVal:":
-    		return int(line[8:])
+    		return float(line[8:])
     return None
 
 def print_stepgroups_pods_duration(leaf_node_name, url, workflow_name):

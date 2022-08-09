@@ -111,5 +111,10 @@ def postprocess(cfg: DictConfig):
     )
     final_dice = np.array(dices).mean()
     print(f"Dice={final_dice}")
+
+    # Also write the final dice to outfile
+    out_file = open(os.path.join(get_original_cwd(), cfg.out_dir_dice, "out.txt"), "w")
+    out_file.write(str(final_dice)); out_file.close()
+
     time_end = time.time()
     return final_dice, time.strftime("%Hh%Mm%Ss", time.gmtime(time_end - time_start))

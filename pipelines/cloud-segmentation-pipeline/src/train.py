@@ -31,7 +31,6 @@ def train(cfg: DictConfig, run):
     # summary(model, batch_size=cfg.batch_size)
     # print("CUDA INFORMATION =>", torch.cuda.device_count())
     # https://stackoverflow.com/questions/48152674/how-do-i-check-if-pytorch-is-using-the-gpu
-
     preprocessing_fn = smp.encoders.get_preprocessing_fn(cfg.encoder, "imagenet")
 
     id_mask_count = (
@@ -98,9 +97,9 @@ def train(cfg: DictConfig, run):
         train_loss = 0.0
         valid_loss = 0.0
         dice_score = 0.0
-
         model.module.train()
         bar = tqdm(train_loader, postfix={"train_loss": 0.0})
+
         for data, target in bar:
             data, target = data.cuda(), target.cuda()
             # data, target = data.float(), target.float()
@@ -111,7 +110,6 @@ def train(cfg: DictConfig, run):
             optimizer.step()
             train_loss += loss.item() * data.size(0)
             bar.set_postfix(ordered_dict={"train_loss": loss.item()})
-
         model.eval()
         del data, target
         with torch.no_grad():
@@ -154,12 +152,13 @@ def train(cfg: DictConfig, run):
             )
 
             os.makedirs(os.path.join(get_original_cwd(), cfg.checkpoint_dir), exist_ok=True)
-             
+            
             torch.save(
                 {"state_dict": model.state_dict()},
                 os.path.join(get_original_cwd(), cfg.checkpoint_dir, "best.pth"),
             )
             valid_loss_min = valid_loss
+
         scheduler.step(valid_loss)
     time_end = time.time()
     return max(dice_score_list), time.strftime(

@@ -213,7 +213,7 @@ def define_workflow(parameter1, parameter2, parameter3, workflow_name):
 
 
 
-def submit_workflow(parameter1, parameter2, parameter3, refresh_window):
+def submit_workflow(params, refresh_window):
     
     
     """
@@ -222,6 +222,8 @@ def submit_workflow(parameter1, parameter2, parameter3, refresh_window):
     Note: api_instance.workflow_logs and api_instance.pod_logs are defunct [see: https://github.com/argoproj/argo-workflows/issues/7781#issuecomment-1094078152]
     """
     
+    parameter1, parameter2, parameter3 = params
+
     workflow_name = 'sdk-memoize-multistep-{0}-{1}-{2}'.format(parameter1,parameter2,parameter3)
  
     manifest = define_workflow(parameter1, parameter2, parameter3, workflow_name)
@@ -256,7 +258,7 @@ def submit_workflow(parameter1, parameter2, parameter3, refresh_window):
  
      
     """
-    Part C: Scrape workflow logs via Kunbernetes Python Client  
+    Part C: Scrape workflow logs via Kubernetes Python Client  
     Return the obj function value, Cost, etc
     """ 
 
@@ -268,14 +270,14 @@ def submit_workflow(parameter1, parameter2, parameter3, refresh_window):
     if len(leaf_node_name) > 1:
         raise ValueError("\t\t[TuunV2-WSS] ~ Whoops! Looks like There's more than 1 leaf ")
 
-    wf_time, pod_total, sg_total = caculate_duration(leaf_node_name[0], url, workflow_name) # Used this for testing
+    wf_time, pod_total, sg_total, pod_runtimes_list = calculate_duration(leaf_node_name[0], url, workflow_name) # Used this for testing
 
     log_name = response_dict['status']['nodes'][leaf_node_name[0]]['outputs']['artifacts'][0]['s3']['key']
     func_val = read_pod_logs_via_k8s(log_name.split('/')[1])
     # print_stepgroups_pods_duration(leaf_node_name[0], url, workflow_name) # Used this for testing
         
-    print("\t\t\t\t[TuunV2-WSS] ++> F-val & WSS Times [Total, PodTotal, StepGroupTotal]:", func_val, "& ["+str(wf_time)+", "+str(pod_total)+", "+str(sg_total)+"]")
-    return func_val, wf_time, pod_total, sg_total
+    print("\t\t\t\t[TuunV2-WSS] ++> F-val:", str(func_val)+"; Total WF Time:", str(wf_time)+"s; Pod total time:", str(pod_total)+"s; Pod-wise times (seconds):", str(pod_runtimes_list) )
+    return func_val, wf_time, pod_total, sg_total, pod_runtimes_list
      
    
 
@@ -285,7 +287,7 @@ if __name__ == '__main__':
     This if statements allows us to run code that won't get run,
     if we import our functions defined within this file, from another python file 
     """
-    submit_workflow(5, 4, 9, refresh_window=10)
+    submit_workflow([5, 4, 10], refresh_window=10)
 
 
     # pprint(test_return_workflow('sdk-memoize-multistep-7v4lm'))
