@@ -41,10 +41,7 @@ def define_workflow(param_dict, workflow_name):
     """
     Define Argo Workflow using Python SDK
     """
-    images_dir_in = "datasets/understanding_cloud_organization/train_images"
-    image_dir_out = "datasets/understanding_cloud_organization/resized_imgs_masks/" +str(param_dict['resize_h']) +'_'+ str(param_dict['resize_w'])  
-    masks_csv_in = "datasets/understanding_cloud_organization/train.csv"
-    masks_csv_out = "datasets/understanding_cloud_organization/resized_imgs_masks/" +str(param_dict['resize_h']) +'_'+ str(param_dict['resize_w']) + ".csv"
+    data_in = "language_data/train.csv" 
 
     manifest = IoArgoprojWorkflowV1alpha1Workflow(
         # metadata=ObjectMeta(generate_name='sdk-memoize-multistep-'),
@@ -67,35 +64,24 @@ def define_workflow(param_dict, workflow_name):
                                     name="generate-artifact",
                                     template="template1")]),
                             IoArgoprojWorkflowV1alpha1ParallelSteps( # STEP 2
-                                
+
                                 value=[IoArgoprojWorkflowV1alpha1WorkflowStep(
                                     name="pass-artifact1",
                                     template="template2",
                                     arguments=IoArgoprojWorkflowV1alpha1Arguments(
                                         artifacts=[IoArgoprojWorkflowV1alpha1Artifact(
-                                                    name="image_artifact",_from="{{steps.generate-artifact.outputs.artifacts.image_dir_out}}"),
-                                                   IoArgoprojWorkflowV1alpha1Artifact(
-                                                    name="masks_artifact",_from="{{steps.generate-artifact.outputs.artifacts.masks_csv_out}}") ]
+                                                    name="feature_artifact",_from="{{steps.generate-artifact.outputs.artifacts.feats_outdir}}"),
+                                                   ]
                                         )
-                                    )]),
+                                    )]), 
                             IoArgoprojWorkflowV1alpha1ParallelSteps( # STEP 3
-                                
-                                value=[IoArgoprojWorkflowV1alpha1WorkflowStep(
-                                    name="pass-artifact2",
-                                    template="template3",
-                                    arguments=IoArgoprojWorkflowV1alpha1Arguments(
-                                        artifacts=[IoArgoprojWorkflowV1alpha1Artifact(
-                                            name="artifact2",_from="{{steps.pass-artifact1.outputs.artifacts.model_checkpoint}}")]
-                                        )
-                                    )]),
-                            IoArgoprojWorkflowV1alpha1ParallelSteps( # STEP 4
                                 
                                 value=[IoArgoprojWorkflowV1alpha1WorkflowStep(
                                     name="return-artifacts",
                                     template="return-template",
                                     arguments=IoArgoprojWorkflowV1alpha1Arguments(
                                         artifacts=[IoArgoprojWorkflowV1alpha1Artifact(
-                                            name="artifact3",_from="{{steps.pass-artifact2.outputs.artifacts.postprocess_scores}}")
+                                            name="scores_artifact",_from="{{steps.pass-artifact1.outputs.artifacts.postprocess_scores}}")
                                             ], 
                                         )
                                     )]), 
@@ -103,30 +89,27 @@ def define_workflow(param_dict, workflow_name):
                 ),
                 # <--- TEMPLATE 1 --->
                 IoArgoprojWorkflowV1alpha1Template(
+
                     name='template1', 
                     memoize=IoArgoprojWorkflowV1alpha1Memoize(
-                        key="{0}{1}".format(param_dict['resize_h'],param_dict['resize_w']),
-                        max_age='10h',
+                        key="{0}{1}{2}".format(str(param_dict['max_df']).replace('.','x'), param_dict['ngram_range'][0], param_dict['ngram_range'][1]),
+                        max_age='1h',
                         cache=IoArgoprojWorkflowV1alpha1Cache(
-                            config_map=ConfigMapKeySelector(key="{0}{1}".format(param_dict['resize_h'],param_dict['resize_w']), name="my-config1"))   
+                            config_map=ConfigMapKeySelector(key="{0}{1}{2}".format(str(param_dict['max_df']).replace('.','x'), param_dict['ngram_range'][0], param_dict['ngram_range'][1]), name="my-config1"))   
                     ),
                     container=Container(
-                        image='munachisonwadike/cloud-segmentation-pipeline', 
+                        image='munachisonwadike/random-forest-pipeline', 
                         command=['sh', '-c'], 
-                        args=["python main.py action=preprocess images_dir_in=/mnt/vol/{0} masks_csv_in=/mnt/vol/{1} image_dir_out=/mnt/vol/{2} masks_csv_out=/mnt/vol/{3}; \
-                         ls /mnt/vol/datasets/understanding_cloud_organization/resized_imgs_masks/".format(images_dir_in, masks_csv_in, image_dir_out, masks_csv_out)],
+                        args=["python main.py action=vectorize data_in=/mnt/vol/{0} feat_outdir=/mnt/vol/{1} max_df={2} ngram_range=[{3},{4}]; ".format(data_in, \
+                             param_dict["feat_outdir"], param_dict["max_df"], param_dict["ngram_range"][0], param_dict["ngram_range"][1])],
                         volume_mounts=[VolumeMount(name="workdir",mount_path="/mnt/vol")]
                     ),  
                     outputs=IoArgoprojWorkflowV1alpha1Outputs(
                         artifacts=[ 
                             IoArgoprojWorkflowV1alpha1Artifact(
-                                name="image_dir_out", 
-                                path="/mnt/vol/{0}".format(image_dir_out)
-                            ),
-                            IoArgoprojWorkflowV1alpha1Artifact(
-                                name="masks_csv_out", 
-                                path="/mnt/vol/{0}".format(masks_csv_out)
-                            )
+                                name="feats_outdir", 
+                                path="/mnt/vol/{0}".format(param_dict["feat_outdir"])
+                            ), 
                         ]
                     )
                 ), 
@@ -135,97 +118,46 @@ def define_workflow(param_dict, workflow_name):
                     name='template2',
                     inputs=IoArgoprojWorkflowV1alpha1Inputs(
                         artifacts=[ IoArgoprojWorkflowV1alpha1Artifact(
-                                    name="image_artifact", 
-                                    path="/tmp/image_artifact"
-                                    ),
-                                    IoArgoprojWorkflowV1alpha1Artifact(
-                                        name="masks_artifact", 
-                                        path="/tmp/masks_artifact"
-                                    )
+                                    name="feature_artifact", 
+                                    path="/tmp/feature_artifact"
+                                    ), 
                         ] 
                     ), 
                     memoize=IoArgoprojWorkflowV1alpha1Memoize(
-                        key="{0}{1}x{2}{3}{4}{5}{6}{7}{8}{9}".format( param_dict['resize_h'], param_dict['resize_w'], 
-                            str(param_dict["batch_size"]), str(param_dict["epochs"]), \
-                         param_dict["optimizer"], param_dict["arch"], param_dict["encoder"], str(param_dict["lr_encoder"]).replace('.','x'), \
-                          str(param_dict["lr_decoder"]).replace('.','x'), str(param_dict["num_workers"]) ),
-                        max_age='5m',
+                        key="{0}{1}{2}x{3}{4}".format(str(param_dict['max_df']).replace('.','x'), param_dict['ngram_range'][0], param_dict['ngram_range'][1], \
+                                                param_dict['min_samples_leaf'], param_dict['max_depth'] ),
+                        max_age='1h',
                         cache=IoArgoprojWorkflowV1alpha1Cache(
-                            config_map=ConfigMapKeySelector(key="{0}{1}x{2}{3}{4}{5}{6}{7}{8}{9}".format(param_dict['resize_h'], param_dict['resize_w'], 
-                                str(param_dict["batch_size"]), str(param_dict["epochs"]), \
-                                param_dict["optimizer"], param_dict["arch"], param_dict["encoder"], str(param_dict["lr_encoder"]).replace('.','x'), \
-                                str(param_dict["lr_decoder"]).replace('.','x'), str(param_dict["num_workers"])), 
+                            config_map=ConfigMapKeySelector(key="{0}{1}{2}x{3}{4}".format(  str(param_dict['max_df']).replace('.','x'), param_dict['ngram_range'][0], param_dict['ngram_range'][1], \
+                                                param_dict['min_samples_leaf'], param_dict['max_depth'] ), 
                                 name="my-config2")
                             )   
                     ),
                     container=Container(
-                        image='munachisonwadike/cloud-segmentation-pipeline', 
+                        image='munachisonwadike/random-forest-pipeline', 
                         command=['sh', '-c'],  
-                        args=["df -h | grep shm; ls /mnt/vol/{0} | wc -l; nvidia-smi; \
-                        ls /mnt/vol/{1}; python main.py action=train \
-                         image_dir_out=/mnt/vol/{0} masks_csv_out=/mnt/vol/{1} batch_size={2} \
-                         checkpoint_dir=/mnt/vol/{3} epochs={4} optimizer={5}  encoder={6} \
-                         lr_encoder={7} lr_decoder={8} num_workers={9} random_seed={10}; \
-                        ls /mnt/vol/".format( image_dir_out, masks_csv_out, param_dict['batch_size'], param_dict['checkpoint_dir'], param_dict['epochs'], param_dict['optimizer'], param_dict['encoder'], param_dict['lr_encoder'], param_dict['lr_decoder'], param_dict['num_workers'], param_dict['random_seed'] )], 
-                        volume_mounts=[VolumeMount(name="workdir", mount_path="/mnt/vol"),VolumeMount(name="dshm",mount_path="/dev/shm")]
+                        args=["df -h | grep shm;  \
+                        ls /mnt/vol/{1}; python main.py action=model \
+                         data_in=/mnt/vol/{0} feat_outdir=/mnt/vol/{1} min_samples_leaf={2} max_depth={3}; \
+                        ls /mnt/vol/".format( data_in, \
+                             param_dict["feat_outdir"], param_dict["min_samples_leaf"], param_dict["max_depth"] )], 
+                        volume_mounts=[VolumeMount(name="workdir", mount_path="/mnt/vol"), VolumeMount(name="dshm",mount_path="/dev/shm")]
                     ),  
                     outputs=IoArgoprojWorkflowV1alpha1Outputs(
                         artifacts=[IoArgoprojWorkflowV1alpha1Artifact(
-                                name="model_checkpoint", 
-                                path="/mnt/vol/{0}/best.pth".format(param_dict['checkpoint_dir'])
+                                name="postprocess_scores", 
+                                path="/mnt/vol/{0}/out.txt".format(param_dict['feat_outdir'])
                         )]
                     )
-                ),               
+                ),       
                 # <--- TEMPLATE 3 --->
-                IoArgoprojWorkflowV1alpha1Template(
-                    name='template3',
-                    inputs=IoArgoprojWorkflowV1alpha1Inputs(
-                        artifacts=[ 
-                            IoArgoprojWorkflowV1alpha1Artifact(
-                                name="artifact2", 
-                                path="/tmp/artifact2"
-                            )
-                        ]
-                    ),
-                    memoize=IoArgoprojWorkflowV1alpha1Memoize(
-                        key="{0}{1}x{2}{3}{4}{5}{6}{7}{8}{9}x{10}{11}".format( param_dict['resize_h'], param_dict['resize_w'], 
-                            str(param_dict["batch_size"]), str(param_dict["epochs"]), \
-                            param_dict["optimizer"], param_dict["arch"], param_dict["encoder"], str(param_dict["lr_encoder"]).replace('.','x'), \
-                            str(param_dict["lr_decoder"]).replace('.','x'), str(param_dict["num_workers"]), str(param_dict["threshold"]).replace('.','x'), str(param_dict["min_mask_size"]) ),
-                        max_age='5m',
-                        cache=IoArgoprojWorkflowV1alpha1Cache(
-                            config_map=ConfigMapKeySelector(key="{0}{1}x{2}{3}{4}{5}{6}{7}{8}{9}x{10}{11}".format( param_dict['resize_h'], param_dict['resize_w'], 
-                            str(param_dict["batch_size"]), str(param_dict["epochs"]), \
-                            param_dict["optimizer"], param_dict["arch"], param_dict["encoder"], str(param_dict["lr_encoder"]).replace('.','x'), \
-                            str(param_dict["lr_decoder"]).replace('.','x'), str(param_dict["num_workers"]), str(param_dict["threshold"]).replace('.','x'), str(param_dict["min_mask_size"]) ), name="my-config3"))   
-                    ),
-                    container=Container(
-                        image='munachisonwadike/cloud-segmentation-pipeline', 
-                        command=['sh', '-c'], 
-                        args=["python main.py action=postprocess \
-                         image_dir_out=/mnt/vol/{0} masks_csv_out=/mnt/vol/{1} batch_size={2} \
-                         checkpoint_dir=/mnt/vol/{3} encoder={4} \
-                         num_workers={5} threshold={6} min_mask_size={7} random_seed={8} out_dir_dice=/mnt/vol ; \
-                        ls /mnt/vol/".format( image_dir_out, masks_csv_out, param_dict['batch_size'], param_dict['checkpoint_dir'], param_dict['encoder'], param_dict['num_workers'], param_dict['threshold'], param_dict['min_mask_size'], param_dict['random_seed'])], 
-                        volume_mounts=[VolumeMount(name="workdir",mount_path="/mnt/vol"),VolumeMount(name="dshm",mount_path="/dev/shm")]
-                    ),  
-                    outputs=IoArgoprojWorkflowV1alpha1Outputs(
-                        artifacts=[ 
-                            IoArgoprojWorkflowV1alpha1Artifact(
-                                name="postprocess_scores", 
-                                path="/mnt/vol/out.txt" 
-                            )
-                        ]
-                    )
-                ),
-                # <--- TEMPLATE 4 --->
                 IoArgoprojWorkflowV1alpha1Template(
                     name='return-template',
                     inputs=IoArgoprojWorkflowV1alpha1Inputs(
                         artifacts=[ 
                             IoArgoprojWorkflowV1alpha1Artifact(
-                                name="artifact3", 
-                                path="/mnt/vol/out.txt"
+                                name="scores_artifact", 
+                                path="/mnt/vol/{0}/out.txt".format(param_dict['feat_outdir'])
                             )
                         ], 
                     ), 
@@ -233,7 +165,7 @@ def define_workflow(param_dict, workflow_name):
                         image='munachisonwadike/simple-xyz-pipeline', 
                         command=['sh', '-c'], 
                         # args=["echo 'functionValue:' $(cat /mnt/vol/step3.txt); echo 'Total Duration:' {{inputs.parameters.priorStepsDuration}}; echo 'workflowDuration:' {{workflow.duration}} "], 
-                        args=["echo 'funcVal:' $(cat /mnt/vol/out.txt);"], 
+                        args=["echo 'funcVal:' $(cat /mnt/vol/{0}/out.txt);".format(param_dict['feat_outdir'])], 
                         volume_mounts=[VolumeMount(name="workdir",mount_path="/mnt/vol")]
                     ),   
                 ),
@@ -254,10 +186,8 @@ def submit_cv_workflow(param_dict, refresh_window):
     Note: api_instance.workflow_logs and api_instance.pod_logs are defunct [see: https://github.com/argoproj/argo-workflows/issues/7781#issuecomment-1094078152]
     """
 
-    workflow_name = 'cldsg-{0}{1}-{2}{3}{4}{5}{6}{7}{8}{9}-{10}{11}'.format(param_dict['resize_h'],param_dict['resize_w'], \
-                                str(param_dict["batch_size"]), param_dict["optimizer"].lower(),  \
-                                str(param_dict["epochs"]), param_dict["arch"].lower(), param_dict["encoder"].lower(), str(param_dict["lr_encoder"]), \
-                                str(param_dict["lr_decoder"]), str(param_dict["num_workers"]), str(param_dict["threshold"]), str(param_dict["min_mask_size"]))
+    workflow_name = 'rforest-{0}-{1}{2}-{3}-{4}'.format( str(param_dict["max_df"]), str(param_dict["ngram_range"][0]), str(param_dict["ngram_range"][1]), \
+                                        str(param_dict["min_samples_leaf"]), str(param_dict["max_depth"]) )
 
     manifest = define_workflow(param_dict, workflow_name)
     
@@ -320,27 +250,16 @@ if __name__ == '__main__':
     """
     This if statements allows us to run code that won't get run,
     if we import our functions defined within this file, from another python file 
-    """
-    
-    
+    """ 
 
-    param_dict = {"action": "preprocess", "random_seed": 0,
-    "resize_h": 352, "resize_w": 576, "device": "gpu",   #w resize must be divisible by 32
-    "batch_size": 16,  "checkpoint_dir":"checkpoints/", "epochs": 1, "optimizer": "Adam", "arch": "Unet", "encoder": "resnet18", "lr_encoder": 1e-3, "lr_decoder": 1e-2, "num_workers":4, # training
-    "threshold": 0.3, "min_mask_size": 10000 # postprocess # "threshold": 0.4, "min_mask_size": 10000  
+    param_dict = {"max_df": 0.9, "ngram_range": [1,2],   # preprocessing
+    "min_samples_leaf": 2, "max_depth": 2000, "feat_outdir": "output_feats_dir"  # training  
     } 
     
-    param_dict["checkpoint_dir"] += str(param_dict["batch_size"])+'_'+str(param_dict["epochs"])+'_'+param_dict["optimizer"]+'_'+param_dict["arch"]+'_'+param_dict["encoder"]+'_'+str(param_dict["lr_encoder"])+'_'+str(param_dict["lr_decoder"])+'_'+str(param_dict["num_workers"])
+    param_dict["feat_outdir"] += str(param_dict["max_df"])+'_'+str(param_dict["ngram_range"][0])+str(param_dict["ngram_range"][1])+'_'+str(param_dict["min_samples_leaf"])+'_'+str(param_dict["max_depth"])
     
-    # print("****!!==>", param_dict["checkpoint_dir"]) 
     submit_cv_workflow(param_dict, refresh_window=10)
- 
-
-    # pprint(test_return_workflow('sdk-memoize-multistep-7v4lm'))
-    # pprint(test_pod_logs('sdk-memoize-multistep-7v4lm','sdk-memoize-multistep-7v4lm-template3-1491687607'))
-    # val  = test_workflow_logs('sdk-memoize-multistep-7v4lm')
-    # print(type(val))
-
+  
 
  
  

@@ -1,3 +1,9 @@
+"""
+This was a version of `cloud_seg.py` which I used for testing 
+Here the artifacts from each stage are written to disk (i.e /mnt/vol)
+Thus never get deleted even when the memoization cache expires.
+In `cloud_seg.py`, we instead try to write to /tmp/ instead of mounted volume """
+
 from argo_workflows.api import workflow_service_api
 from argo_workflows.model.container import Container
 from argo_workflows.model.io_argoproj_workflow_v1alpha1_template import IoArgoprojWorkflowV1alpha1Template

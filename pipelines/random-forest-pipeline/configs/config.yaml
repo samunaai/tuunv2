@@ -1,0 +1,16 @@
+# specify pre-or-post-processing, or training
+action: "insert-here"
+ 
+# preprocessing
+data_in: "../linguistic-pipeline-tests/data/train.csv" # cpu only
+feat_outdir: "output_feats_dir" # cpu only
+max_df: 0.9
+ngram_range: [1,2]
+
+# training 
+min_samples_leaf: 2 
+max_depth: 2000 
+
+# miscellaneous
+random_seed: 42
+test_size: 0.1
