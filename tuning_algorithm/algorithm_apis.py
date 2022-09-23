@@ -93,8 +93,8 @@ class RandomSearch(TuningAlgorithm):
 		with open(os.devnull, "w") as f, contextlib.redirect_stdout(f):
 			print("This won't be printed.") # special block to suppress print statements
 		print("{TuunV2-TA} => [New] Submitting New workflow to WSS (workflow submission system)")
-		val, cost, _, _ = submit_workflow(x, y, z, 20)
-		print("{TuunV2-TA} => Prev WSS return value:"+str(val)+"; Argo Time:"+str(cost)+"s")
+		val, wf_time, pod_total, _, pod_runtimes_list = submit_workflow([x, y, z], 20) ## PASS PARAMETERS IN AS A LIST SO 
+		print("{TuunV2-TA} => Prev WSS return value:"+str(val)+"; Argo Time:"+str(wf_time)+"s")
 		return val
 
 	def update(self, current_val, x, y, z):
@@ -162,5 +162,5 @@ class VanillaBO(TuningAlgorithm):
 
 
 if __name__ == '__main__':
-	r = RandomSearch([0,10],[0,10],[0,10], iters=15)
+	r = RandomSearch([0,2],[0,2],[0,2], iters=30)
 	r.loop()
