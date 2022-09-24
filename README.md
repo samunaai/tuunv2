@@ -44,6 +44,7 @@ Some useful starter commands in kubernetes are:
 - `kubectl describe pod pod-name`: shows all statistics of a particular pod, which is very useful for debugging
 - `kubectl logs pod-name`: shows the _outputs_ produced from running a container
 
+Note: In order to have allocated disk space for Argo to write artifacts to disk, you may been to create a persistent volume (pv), and then a persistent volume claim (pvc), which you can pass to argo. Sample yaml's for declaring a pv can be found in the `volumes` folder of this repository. For example, you could run `kubectl apply -f argo-pv.yaml`
 
 ## 3. Argo
 
