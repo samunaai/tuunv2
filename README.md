@@ -89,10 +89,10 @@ The Argo project has several tools, but we use mainly Argo Workflows. Argo Workf
     
     > <img width="600" alt="argo" src="https://user-images.githubusercontent.com/22077758/167294039-c8acc4ee-00f0-4da6-8135-7c986b3dbbc8.png">
 
-### Regarding Volumes and Memory Usage
-> In order to have allocated disk space for Argo to write artifacts to disk, you may been to create a persistent volume (pv), and then a persistent volume claim (pvc), which you can pass to argo. 
-> Sample yaml's for declaring a pv can be found in the `volumes` folder of this repository. For example, you could run `kubectl apply -f argo-pv.yaml`
-> Note that while a pv is not namespaces, and "floats freely in kubernetes", a pvc needs to be applied to particular namespace. Argo will not be able to use memory under the volume claim if it does not belong to the same namespace as the argo server and pods.
+### 3.1 Regarding Volumes and Memory Usage
+- In order to have allocated disk space for Argo to write artifacts to disk, you may been to create a persistent volume (pv), and then a persistent volume claim (pvc), which you can pass to argo. 
+- Sample yaml's for declaring a pv can be found in the `volumes` folder of this repository. For example, you could run `kubectl apply -f argo-pv.yaml`
+- Note that while a pv is not namespaces, and "floats freely in kubernetes", a pvc needs to be applied to particular namespace. Argo will not be able to use memory under the volume claim if it does not belong to the same namespace as the argo server and pods.
 
 <!-- ## 4. Katib -->
 
