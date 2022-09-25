@@ -45,6 +45,8 @@ Some useful starter commands in kubernetes are:
 - `kubectl logs pod-name`: shows the _outputs_ produced from running a container
 
 
+
+
 ## 3. Argo
 
 The Argo project has several tools, but we use mainly Argo Workflows. Argo Workflows [quickstart page](https://github.com/argoproj/argo-workflows/blob/master/docs/quick-start.md) provides useful steps to get it up and running. Here are some helpful notes to provide you with additional installation advice:
@@ -87,6 +89,12 @@ The Argo project has several tools, but we use mainly Argo Workflows. Argo Workf
     
     > <img width="600" alt="argo" src="https://user-images.githubusercontent.com/22077758/167294039-c8acc4ee-00f0-4da6-8135-7c986b3dbbc8.png">
 
-## 4. Katib
+### 3.1 Regarding Volumes and Memory Usage
 
-Katib supports experiment scheduling with several types of kubernetes custom resources, inluding Argo Workflows. The official docs explain how to integrate Argo with Katib. Verify your default runtime executor using `kubectl get ConfigMap -n argo workflow-controller-configmap -o yaml | grep containerRuntimeExecutor`. If it is not `emissary`, you will need to change it to `emissary` using `kubectl patch ConfigMap -n argo workflow-controller-configmap --type='merge' -p='{"data":{"containerRuntimeExecutor":"emissary"}}'`
+- In order to have allocated disk space for Argo to write artifacts to disk, you may been to create a persistent volume (pv), and then a persistent volume claim (pvc), which you can pass to argo. 
+- Sample yaml's for declaring a pv can be found in the `volumes` folder of this repository. For example, you could run `kubectl apply -f argo-pv.yaml`
+- Note that both a pvc and its corresponding pv needs to be applied to particular namespace. Argo will not be able to use memory under the persistent volume claim if it does not belong to the same namespace as the argo server and pods. And a persistent volume claim will not be able to find a persisent volume to `bind` to if it is not under the same namespace.
+
+<!-- ## 4. Katib -->
+
+<!--Katib supports experiment scheduling with several types of kubernetes custom resources, inluding Argo Workflows. The official docs explain how to integrate Argo with Katib. Verify your default runtime executor using `kubectl get ConfigMap -n argo workflow-controller-configmap -o yaml | grep containerRuntimeExecutor`. If it is not `emissary`, you will need to change it to `emissary` using `kubectl patch ConfigMap -n argo workflow-controller-configmap --type='merge' -p='{"data":{"containerRuntimeExecutor":"emissary"}}'` -->
