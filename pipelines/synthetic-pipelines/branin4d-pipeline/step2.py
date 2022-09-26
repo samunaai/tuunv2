@@ -1,9 +1,9 @@
 """
-  Stage 2 in basic pipeline simulating the 3D function f(x)=branin2d(x1,x2)+branin2d(x3,x4)
+  Stage 2 in basic pipeline simulating the 3D function f(x)=-branin2d(x1,x2)-branin2d(x3,x4)
   This python file computes the first of the two branin functions
   x3 and x4 are passed in as the sys.argv 1 and 2,
-  The output artifact is branin2d(x3,x4), and is written to the folder specified by sys.argv 3
-  Also reads in the input1, i.e. branin2d(x1,x2), from that folder and adds that to branin for thus function
+  Also reads in the input1, i.e. -branin2d(x1,x2)
+  The output artifact is written to the folder specified by sys.argv 3
   -- *insert my email address here*
 """
 import os 

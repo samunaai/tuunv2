@@ -1,8 +1,8 @@
 """
-  Stage 1 in basic pipeline simulating the 3D function f(x)=-branin2d(x1,x2)-branin2d(x3,x4)
-  This python file computes the first of the two branin functions
+  Stage 1 in basic pipeline simulating the 3D function f(x)=branin2d(x1,x2)+hartmann6d(x3,x4,x5,x6)
+  This python file computes the first of the two functions
   x1 and x2 are passed in as the sys.argv 1 and 2,
-  The output artifact is -branin2d(x1,x2), and is written to the folder specified by sys.argv 3
+  The output artifact is branin2d(x1,x2), and is written to the folder specified by sys.argv 3
   -- *insert my email address here*
 """
 import os 
