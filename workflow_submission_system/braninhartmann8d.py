@@ -45,11 +45,6 @@ def define_workflow(x1, x2, x3, x4, x5, x6, x7, x8, workflow_name, cache_time):
         metadata=ObjectMeta(name=workflow_name), 
         spec=IoArgoprojWorkflowV1alpha1WorkflowSpec(
             entrypoint='entry-template',
-            volumes=[Volume(name="workdir", 
-                persistent_volume_claim=PersistentVolumeClaimVolumeSource(
-                    claim_name="argo-pv-claim")
-                )
-            ], 
             templates=[
                 # <--- TEMPLATE 1 --->
                 IoArgoprojWorkflowV1alpha1Template(
@@ -91,7 +86,6 @@ def define_workflow(x1, x2, x3, x4, x5, x6, x7, x8, workflow_name, cache_time):
                         image='munachisonwadike/branin-hartmann8d-pipeline', 
                         command=['sh', '-c'], 
                         args=["python step1.py {0} {1} /tmp/; ls /tmp/".format(x1, x2)],
-                        volume_mounts=[VolumeMount(name="workdir",mount_path="/tmp")]
                     ),  
                     outputs=IoArgoprojWorkflowV1alpha1Outputs(
                         artifacts=[ 
@@ -126,7 +120,6 @@ def define_workflow(x1, x2, x3, x4, x5, x6, x7, x8, workflow_name, cache_time):
                         command=['sh', '-c'], 
                         # above line was just for debugging to be sure I can see mounted volume
                         args=["python step2.py {0} {1} /tmp/; ls /tmp/".format(x3, x4)],
-                        volume_mounts=[VolumeMount(name="workdir",mount_path="/tmp")]
                     ),  
                     outputs=IoArgoprojWorkflowV1alpha1Outputs(
                         artifacts=[ 
@@ -153,7 +146,6 @@ def define_workflow(x1, x2, x3, x4, x5, x6, x7, x8, workflow_name, cache_time):
                         command=['sh', '-c'], 
                         # args=["echo 'functionValue:' $(cat /tmp/step3.txt); echo 'Total Duration:' {{inputs.parameters.priorStepsDuration}}; echo 'workflowDuration:' {{workflow.duration}} "], 
                         args=["echo 'funcVal:' $(cat /tmp/step2.txt);"], 
-                        volume_mounts=[VolumeMount(name="workdir", mount_path="/tmp")]
                     ),   
                 ),
             ]
