@@ -1,6 +1,6 @@
 """
   Stage 1 in basic pipeline simulating the 3D function f(x,y,z)=x^2 + y^2 + z^2 
-  -- munachiso.nwadike@mbzuai.ac.ae
+  -- *insert my email address here*
 """
 import os 
 import sys
