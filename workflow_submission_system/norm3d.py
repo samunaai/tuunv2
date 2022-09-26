@@ -35,7 +35,7 @@ import time
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning) # make sure to remove this later in production
 
-def define_workflow(x1, x2, x3, x4, x5, x6, x7, x8, workflow_name, cache_time):
+def define_workflow(x1, x2, x3, workflow_name, cache_time):
 
     """
     Define Argo Workflow using Python SDK
@@ -44,31 +44,22 @@ def define_workflow(x1, x2, x3, x4, x5, x6, x7, x8, workflow_name, cache_time):
         # metadata=ObjectMeta(generate_name='sdk-memoize-multistep-'),
         metadata=ObjectMeta(name=workflow_name), 
         spec=IoArgoprojWorkflowV1alpha1WorkflowSpec(
-            entrypoint='entry-template',
+            entrypoint='entry-template', 
             templates=[
                 # <--- TEMPLATE 1 --->
                 IoArgoprojWorkflowV1alpha1Template(
                     name='entry-template',
                     steps=[ IoArgoprojWorkflowV1alpha1ParallelSteps( # STEP 1
                                 value=[IoArgoprojWorkflowV1alpha1WorkflowStep(
-                                    name="branin-hartmann8d-part1",
-                                    template="template1")]),
-                            IoArgoprojWorkflowV1alpha1ParallelSteps( # STEP 2
-                                value=[IoArgoprojWorkflowV1alpha1WorkflowStep(
-                                    name="branin-hartmann8d-part2",
-                                    template="template2",
-                                    arguments=IoArgoprojWorkflowV1alpha1Arguments(
-                                        artifacts=[IoArgoprojWorkflowV1alpha1Artifact(
-                                            name="artifact1",_from="{{steps.branin-hartmann8d-part1.outputs.artifacts.output1}}")]
-                                        )
-                                    )]), 
+                                    name="norm3d-part1",
+                                    template="template1")]), 
                             IoArgoprojWorkflowV1alpha1ParallelSteps( # STEP 3
                                 value=[IoArgoprojWorkflowV1alpha1WorkflowStep(
                                     name="return-artifacts",
                                     template="return-template",
                                     arguments=IoArgoprojWorkflowV1alpha1Arguments(
                                         artifacts=[IoArgoprojWorkflowV1alpha1Artifact(
-                                            name="artifact2",_from="{{steps.branin-hartmann8d-part2.outputs.artifacts.output2}}")
+                                            name="artifact1",_from="{{steps.norm3d-part1.outputs.artifacts.output1}}")
                                             ], 
                                         )
                                     )]), 
@@ -77,15 +68,16 @@ def define_workflow(x1, x2, x3, x4, x5, x6, x7, x8, workflow_name, cache_time):
                 IoArgoprojWorkflowV1alpha1Template(
                     name='template1', 
                     memoize=IoArgoprojWorkflowV1alpha1Memoize(
-                        key="brh8d{0}{1}".format( str(x1).replace('.','x'), str(x2).replace('.','x') ),
+                        key="nrm3d{0}{1}{2}".format( str(x1).replace('.','x'), str(x2).replace('.','x'), str(x3).replace('.','x') ),
                         max_age=cache_time,
                         cache=IoArgoprojWorkflowV1alpha1Cache(
-                            config_map=ConfigMapKeySelector(key="brh8d{0}{1}".format( str(x1).replace('.','x'), str(x2).replace('.','x') ), name="my-config1"))   
+                            config_map=ConfigMapKeySelector(key="nrm3d{0}{1}{2}".format( str(x1).replace('.','x'), 
+                                str(x2).replace('.','x'), str(x3).replace('.','x') ), name="my-config1"))   
                     ),
                     container=Container(
-                        image='munachisonwadike/branin-hartmann8d-pipeline', 
+                        image='munachisonwadike/norm3d-pipeline', 
                         command=['sh', '-c'], 
-                        args=["python step1.py {0} {1} /tmp/; ls /tmp/".format(x1, x2)],
+                        args=["python step1.py {0} {1} {2} /tmp/; ls /tmp/".format(x1, x2, x3)],
                     ),  
                     outputs=IoArgoprojWorkflowV1alpha1Outputs(
                         artifacts=[ 
@@ -95,57 +87,23 @@ def define_workflow(x1, x2, x3, x4, x5, x6, x7, x8, workflow_name, cache_time):
                             )
                         ]
                     )
-                ),
+                ),  
                 # <--- TEMPLATE 3 --->
                 IoArgoprojWorkflowV1alpha1Template(
-                    name='template2',
+                    name='return-template',
                     inputs=IoArgoprojWorkflowV1alpha1Inputs(
                         artifacts=[ 
                             IoArgoprojWorkflowV1alpha1Artifact(
                                 name="artifact1", 
                                 path="/tmp/step1.txt"
                             )
-                        ]
-                    ),
-                    memoize=IoArgoprojWorkflowV1alpha1Memoize(
-                        key="brh8d{0}{1}{2}{3}{4}{5}".format( str(x3).replace('.','x'), str(x4).replace('.','x'),
-                            str(x5).replace('.','x'), str(x6).replace('.','x'), str(x7).replace('.','x'), str(x8).replace('.','x') ),
-                        max_age=cache_time,
-                        cache=IoArgoprojWorkflowV1alpha1Cache(
-                            config_map=ConfigMapKeySelector(key="brh8d{0}{1}{2}{3}{4}{5}".format( str(x3).replace('.','x'), str(x4).replace('.','x'),
-                            str(x5).replace('.','x'), str(x6).replace('.','x'), str(x7).replace('.','x'), str(x8).replace('.','x') ), name="my-config2"))   
-                    ),
-                    container=Container(
-                        image='munachisonwadike/branin-hartmann8d-pipeline', 
-                        command=['sh', '-c'], 
-                        # above line was just for debugging to be sure I can see mounted volume
-                        args=["python step2.py {0} {1} {2} {3} {4} {5} /tmp/; ls /tmp/".format(x3, x4, x5, x6, x7, x8)],
-                    ),  
-                    outputs=IoArgoprojWorkflowV1alpha1Outputs(
-                        artifacts=[ 
-                            IoArgoprojWorkflowV1alpha1Artifact(
-                                name="output2", 
-                                path="/tmp/step2.txt" 
-                            )
-                        ]
-                    )
-                ),
-                # <--- TEMPLATE 4 --->
-                IoArgoprojWorkflowV1alpha1Template(
-                    name='return-template',
-                    inputs=IoArgoprojWorkflowV1alpha1Inputs(
-                        artifacts=[ 
-                            IoArgoprojWorkflowV1alpha1Artifact(
-                                name="artifact2", 
-                                path="/tmp/step2.txt"
-                            )
                         ], 
                     ), 
                     container=Container(
-                        image='munachisonwadike/branin-hartmann8d-pipeline', 
+                        image='munachisonwadike/norm3d-pipeline', 
                         command=['sh', '-c'], 
                         # args=["echo 'functionValue:' $(cat /tmp/step3.txt); echo 'Total Duration:' {{inputs.parameters.priorStepsDuration}}; echo 'workflowDuration:' {{workflow.duration}} "], 
-                        args=["echo 'funcVal:' $(cat /tmp/step2.txt);"], 
+                        args=["echo 'funcVal:' $(cat /tmp/step1.txt);"], 
                     ),   
                 ),
             ]
@@ -155,10 +113,10 @@ def define_workflow(x1, x2, x3, x4, x5, x6, x7, x8, workflow_name, cache_time):
     return manifest
 
 
-def brh8d_cost(x1, x2, x3, x4):
+def nrm3d_cost(x1, x2, x3):
     return
 
-def submit_brh8d_workflow(params, refresh_window, cost_type=True, cache_time=''):
+def submit_nrm3d_workflow(params, refresh_window, cost_type=True, cache_time=''):
     
     
     """ 
@@ -173,11 +131,11 @@ def submit_brh8d_workflow(params, refresh_window, cost_type=True, cache_time='')
     
 
     # 1. First Define Workflow Name based on input parameters
-    x1, x2, x3, x4, x5, x6, x7, x8 = params
-    workflow_name = 'branin-hartmann-8d-{0}-{1}-{2}-{3}-{4}-{5}-{6}-{7}'.format(x1, x2, x3, x4, x5, x6, x7, x8)
+    x1, x2, x3 = params
+    workflow_name = 'norm3d-{0}-{1}-{2}'.format(x1, x2, x3)
     
     # 2. Then Create the Manifest
-    manifest = define_workflow(x1, x2, x3, x4, x5, x6, x7, x8, workflow_name, cache_time)
+    manifest = define_workflow(x1, x2, x3, workflow_name, cache_time)
     
     # 3. Configure API instance and submit the Manifest there via HTTP request    
     configuration = argo_workflows.Configuration(host="https://127.0.0.1:2746", ssl_ca_cert=None) 
@@ -225,7 +183,7 @@ if __name__ == '__main__':
     This if statements allows us to run code that won't get run,
     if we import our functions defined within this file, from another python file 
     """
-    submit_brh8d_workflow([1, 1, 2, 0.5, 1.5, 1, 0.2, 0.2], refresh_window=5, cost_type=True, cache_time='5m')
+    submit_nrm3d_workflow([6, 5, 2], refresh_window=5, cost_type=True, cache_time='5m')
 
 
     # pprint(test_return_workflow('sdk-memoize-multistep-7v4lm'))

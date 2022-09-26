@@ -103,7 +103,7 @@ def define_workflow(x1, x2, x3, x4, workflow_name, cache_time):
                         artifacts=[ 
                             IoArgoprojWorkflowV1alpha1Artifact(
                                 name="artifact1", 
-                                path="/tmp/artifact1"
+                                path="/tmp/step1.txt"
                             )
                         ]
                     ),
