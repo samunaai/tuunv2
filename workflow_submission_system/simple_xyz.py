@@ -294,7 +294,3 @@ if __name__ == '__main__':
     # pprint(test_pod_logs('sdk-memoize-multistep-7v4lm','sdk-memoize-multistep-7v4lm-template3-1491687607'))
     # val  = test_workflow_logs('sdk-memoize-multistep-7v4lm')
     # print(type(val))
-
-
- 
- 

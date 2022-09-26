@@ -105,10 +105,10 @@ def define_workflow(param_dict, workflow_name):
                 IoArgoprojWorkflowV1alpha1Template(
                     name='template1', 
                     memoize=IoArgoprojWorkflowV1alpha1Memoize(
-                        key="{0}{1}".format(param_dict['resize_h'],param_dict['resize_w']),
+                        key="cld{0}{1}".format(param_dict['resize_h'],param_dict['resize_w']),
                         max_age='10h',
                         cache=IoArgoprojWorkflowV1alpha1Cache(
-                            config_map=ConfigMapKeySelector(key="{0}{1}".format(param_dict['resize_h'],param_dict['resize_w']), name="my-config1"))   
+                            config_map=ConfigMapKeySelector(key="cld{0}{1}".format(param_dict['resize_h'],param_dict['resize_w']), name="my-config1"))   
                     ),
                     container=Container(
                         image='munachisonwadike/cloud-segmentation-pipeline', 
@@ -145,13 +145,13 @@ def define_workflow(param_dict, workflow_name):
                         ] 
                     ), 
                     memoize=IoArgoprojWorkflowV1alpha1Memoize(
-                        key="{0}{1}x{2}{3}{4}{5}{6}{7}{8}{9}".format( param_dict['resize_h'], param_dict['resize_w'], 
+                        key="cld{0}{1}x{2}{3}{4}{5}{6}{7}{8}{9}".format( param_dict['resize_h'], param_dict['resize_w'], 
                             str(param_dict["batch_size"]), str(param_dict["epochs"]), \
                          param_dict["optimizer"], param_dict["arch"], param_dict["encoder"], str(param_dict["lr_encoder"]).replace('.','x'), \
                           str(param_dict["lr_decoder"]).replace('.','x'), str(param_dict["num_workers"]) ),
                         max_age='5m',
                         cache=IoArgoprojWorkflowV1alpha1Cache(
-                            config_map=ConfigMapKeySelector(key="{0}{1}x{2}{3}{4}{5}{6}{7}{8}{9}".format(param_dict['resize_h'], param_dict['resize_w'], 
+                            config_map=ConfigMapKeySelector(key="cld{0}{1}x{2}{3}{4}{5}{6}{7}{8}{9}".format(param_dict['resize_h'], param_dict['resize_w'], 
                                 str(param_dict["batch_size"]), str(param_dict["epochs"]), \
                                 param_dict["optimizer"], param_dict["arch"], param_dict["encoder"], str(param_dict["lr_encoder"]).replace('.','x'), \
                                 str(param_dict["lr_decoder"]).replace('.','x'), str(param_dict["num_workers"])), 
@@ -188,13 +188,13 @@ def define_workflow(param_dict, workflow_name):
                         ]
                     ),
                     memoize=IoArgoprojWorkflowV1alpha1Memoize(
-                        key="{0}{1}x{2}{3}{4}{5}{6}{7}{8}{9}x{10}{11}".format( param_dict['resize_h'], param_dict['resize_w'], 
+                        key="cld{0}{1}x{2}{3}{4}{5}{6}{7}{8}{9}x{10}{11}".format( param_dict['resize_h'], param_dict['resize_w'], 
                             str(param_dict["batch_size"]), str(param_dict["epochs"]), \
                             param_dict["optimizer"], param_dict["arch"], param_dict["encoder"], str(param_dict["lr_encoder"]).replace('.','x'), \
                             str(param_dict["lr_decoder"]).replace('.','x'), str(param_dict["num_workers"]), str(param_dict["threshold"]).replace('.','x'), str(param_dict["min_mask_size"]) ),
                         max_age='5m',
                         cache=IoArgoprojWorkflowV1alpha1Cache(
-                            config_map=ConfigMapKeySelector(key="{0}{1}x{2}{3}{4}{5}{6}{7}{8}{9}x{10}{11}".format( param_dict['resize_h'], param_dict['resize_w'], 
+                            config_map=ConfigMapKeySelector(key="cld{0}{1}x{2}{3}{4}{5}{6}{7}{8}{9}x{10}{11}".format( param_dict['resize_h'], param_dict['resize_w'], 
                             str(param_dict["batch_size"]), str(param_dict["epochs"]), \
                             param_dict["optimizer"], param_dict["arch"], param_dict["encoder"], str(param_dict["lr_encoder"]).replace('.','x'), \
                             str(param_dict["lr_decoder"]).replace('.','x'), str(param_dict["num_workers"]), str(param_dict["threshold"]).replace('.','x'), str(param_dict["min_mask_size"]) ), name="my-config3"))   

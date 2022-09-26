@@ -20,7 +20,6 @@ from argo_workflows.model.io_argoproj_workflow_v1alpha1_parameter import IoArgop
 from argo_workflows.model.io_argoproj_workflow_v1alpha1_value_from import IoArgoprojWorkflowV1alpha1ValueFrom
 from argo_workflows.model.io_argoproj_workflow_v1alpha1_workflow_step import IoArgoprojWorkflowV1alpha1WorkflowStep
 
-from argo_workflows.model.empty_dir_volume_source import EmptyDirVolumeSource
 from argo_workflows.model.persistent_volume_claim_volume_source import PersistentVolumeClaimVolumeSource
 from argo_workflows.model.volume import Volume
 from argo_workflows.model.volume_mount import VolumeMount
@@ -36,135 +35,125 @@ import time
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning) # make sure to remove this later in production
 
-def define_workflow(param_dict, workflow_name):
+def define_workflow(x1, x2, x3, x4, x5, x6, x7, x8, workflow_name, cache_time):
 
     """
     Define Argo Workflow using Python SDK
     """
-    data_in = "language_data/train.csv" 
-
     manifest = IoArgoprojWorkflowV1alpha1Workflow(
         # metadata=ObjectMeta(generate_name='sdk-memoize-multistep-'),
         metadata=ObjectMeta(name=workflow_name), 
         spec=IoArgoprojWorkflowV1alpha1WorkflowSpec(
             entrypoint='entry-template',
             volumes=[Volume(name="workdir", 
-                        persistent_volume_claim=PersistentVolumeClaimVolumeSource(
-                        claim_name="argo-pv-claim")
-                    ), Volume(name="dshm", 
-                    empty_dir=EmptyDirVolumeSource(
-                    medium="Memory"))
+                persistent_volume_claim=PersistentVolumeClaimVolumeSource(
+                    claim_name="argo-pv-claim")
+                )
             ], 
             templates=[
-                # <--- TEMPLATE 0 --->
+                # <--- TEMPLATE 1 --->
                 IoArgoprojWorkflowV1alpha1Template(
                     name='entry-template',
                     steps=[ IoArgoprojWorkflowV1alpha1ParallelSteps( # STEP 1
                                 value=[IoArgoprojWorkflowV1alpha1WorkflowStep(
-                                    name="generate-artifact",
+                                    name="branin-part1",
                                     template="template1")]),
                             IoArgoprojWorkflowV1alpha1ParallelSteps( # STEP 2
-
                                 value=[IoArgoprojWorkflowV1alpha1WorkflowStep(
-                                    name="pass-artifact1",
+                                    name="branin-part2",
                                     template="template2",
                                     arguments=IoArgoprojWorkflowV1alpha1Arguments(
                                         artifacts=[IoArgoprojWorkflowV1alpha1Artifact(
-                                                    name="feature_artifact",_from="{{steps.generate-artifact.outputs.artifacts.feats_outdir}}"),
-                                                   ]
+                                            name="artifact1",_from="{{steps.branin-part1.outputs.artifacts.output1}}")]
                                         )
                                     )]), 
                             IoArgoprojWorkflowV1alpha1ParallelSteps( # STEP 3
-                                
                                 value=[IoArgoprojWorkflowV1alpha1WorkflowStep(
                                     name="return-artifacts",
                                     template="return-template",
                                     arguments=IoArgoprojWorkflowV1alpha1Arguments(
                                         artifacts=[IoArgoprojWorkflowV1alpha1Artifact(
-                                            name="scores_artifact",_from="{{steps.pass-artifact1.outputs.artifacts.postprocess_scores}}")
+                                            name="artifact2",_from="{{steps.branin-part2.outputs.artifacts.output2}}")
                                             ], 
                                         )
                                     )]), 
                     ]
-                ),
-                # <--- TEMPLATE 1 --->
+                ),# <--- TEMPLATE 2 --->
                 IoArgoprojWorkflowV1alpha1Template(
-
                     name='template1', 
                     memoize=IoArgoprojWorkflowV1alpha1Memoize(
-                        key="rf{0}{1}{2}".format(str(param_dict['max_df']).replace('.','x'), param_dict['ngram_range'][0], param_dict['ngram_range'][1]),
-                        max_age='1h',
+                        key="brh8d{0}{1}".format( str(x1).replace('.','x'), str(x2).replace('.','x') ),
+                        max_age=cache_time,
                         cache=IoArgoprojWorkflowV1alpha1Cache(
-                            config_map=ConfigMapKeySelector(key="rf{0}{1}{2}".format(str(param_dict['max_df']).replace('.','x'), param_dict['ngram_range'][0], param_dict['ngram_range'][1]), name="my-config1"))   
+                            config_map=ConfigMapKeySelector(key="brh8d{0}{1}".format( str(x1).replace('.','x'), str(x2).replace('.','x') ), name="my-config1"))   
                     ),
                     container=Container(
-                        image='munachisonwadike/random-forest-pipeline', 
+                        image='munachisonwadike/branin-hartmann8d-pipeline', 
                         command=['sh', '-c'], 
-                        args=["python main.py action=vectorize data_in=/mnt/vol/{0} feat_outdir=/tmp/{1} max_df={2} ngram_range=[{3},{4}]; ".format(data_in, \
-                             param_dict["feat_outdir"], param_dict["max_df"], param_dict["ngram_range"][0], param_dict["ngram_range"][1])],
-                        volume_mounts=[VolumeMount(name="workdir", mount_path="/mnt/vol")]                    
+                        args=["python step1.py {0} {1} /tmp/; ls /tmp/".format(x1, x2)],
+                        volume_mounts=[VolumeMount(name="workdir",mount_path="/tmp")]
                     ),  
                     outputs=IoArgoprojWorkflowV1alpha1Outputs(
                         artifacts=[ 
                             IoArgoprojWorkflowV1alpha1Artifact(
-                                name="feats_outdir", 
-                                path="/tmp/{0}".format(param_dict["feat_outdir"])
-                            ), 
+                                name="output1", 
+                                path="/tmp/step1.txt" 
+                            )
                         ]
                     )
-                ), 
-                # <--- TEMPLATE 2 --->
+                ),
+                # <--- TEMPLATE 3 --->
                 IoArgoprojWorkflowV1alpha1Template(
                     name='template2',
                     inputs=IoArgoprojWorkflowV1alpha1Inputs(
-                        artifacts=[ IoArgoprojWorkflowV1alpha1Artifact(
-                                    name="feature_artifact", 
-                                    path="/tmp/feature_artifact"
-                                    ), 
-                        ] 
-                    ), 
+                        artifacts=[ 
+                            IoArgoprojWorkflowV1alpha1Artifact(
+                                name="artifact1", 
+                                path="/tmp/artifact1"
+                            )
+                        ]
+                    ),
                     memoize=IoArgoprojWorkflowV1alpha1Memoize(
-                        key="rf{0}{1}{2}x{3}{4}".format(str(param_dict['max_df']).replace('.','x'), param_dict['ngram_range'][0], param_dict['ngram_range'][1], \
-                                                param_dict['min_samples_leaf'], param_dict['max_depth'] ),
-                        max_age='1h',
+                        key="brh8d{0}{1}{2}{3}{4}{5}".format( str(x3).replace('.','x'), str(x4).replace('.','x'),
+                            str(x5).replace('.','x'), str(x6).replace('.','x'), str(x7).replace('.','x'), str(x8).replace('.','x') ),
+                        max_age=cache_time,
                         cache=IoArgoprojWorkflowV1alpha1Cache(
-                            config_map=ConfigMapKeySelector(key="rf{0}{1}{2}x{3}{4}".format(  str(param_dict['max_df']).replace('.','x'), param_dict['ngram_range'][0], param_dict['ngram_range'][1], \
-                                                param_dict['min_samples_leaf'], param_dict['max_depth'] ), 
-                                name="my-config2")
-                            )   
+                            config_map=ConfigMapKeySelector(key="brh8d{0}{1}{2}{3}{4}{5}".format( str(x3).replace('.','x'), str(x4).replace('.','x'),
+                            str(x5).replace('.','x'), str(x6).replace('.','x'), str(x7).replace('.','x'), str(x8).replace('.','x') ), name="my-config2"))   
                     ),
                     container=Container(
-                        image='munachisonwadike/random-forest-pipeline', 
-                        command=['sh', '-c'],  
-                        args=["df -h | grep shm;  \
-                        ls /mnt/vol/{0}; ls /tmp; python main.py action=model \
-                         data_in=/mnt/vol/{0} feat_outdir=/tmp/feature_artifact min_samples_leaf={2} max_depth={3}; \
-                        ls /tmp/".format( data_in, \
-                             param_dict["feat_outdir"], param_dict["min_samples_leaf"], param_dict["max_depth"] )], 
-                        volume_mounts=[VolumeMount(name="workdir", mount_path="/mnt/vol"), VolumeMount(name="dshm",mount_path="/dev/shm")]
+                        image='munachisonwadike/branin-hartmann8d-pipeline', 
+                        command=['sh', '-c'], 
+                        # above line was just for debugging to be sure I can see mounted volume
+                        args=["python step2.py {0} {1} /tmp/; ls /tmp/".format(x3, x4)],
+                        volume_mounts=[VolumeMount(name="workdir",mount_path="/tmp")]
                     ),  
                     outputs=IoArgoprojWorkflowV1alpha1Outputs(
-                        artifacts=[IoArgoprojWorkflowV1alpha1Artifact(
-                                name="postprocess_scores", 
-                                path="/tmp/feature_artifact/out.txt".format(param_dict['feat_outdir'])
-                        )]
+                        artifacts=[ 
+                            IoArgoprojWorkflowV1alpha1Artifact(
+                                name="output2", 
+                                path="/tmp/step2.txt" 
+                            )
+                        ]
                     )
-                ),       
-                # <--- TEMPLATE 3 --->
+                ),
+                # <--- TEMPLATE 4 --->
                 IoArgoprojWorkflowV1alpha1Template(
                     name='return-template',
                     inputs=IoArgoprojWorkflowV1alpha1Inputs(
                         artifacts=[ 
                             IoArgoprojWorkflowV1alpha1Artifact(
-                                name="scores_artifact", 
-                                path="/tmp/feature_artifact/out.txt".format(param_dict['feat_outdir'])
+                                name="artifact2", 
+                                path="/tmp/step2.txt"
                             )
                         ], 
                     ), 
                     container=Container(
-                        image='munachisonwadike/simple-xyz-pipeline', 
+                        image='munachisonwadike/branin-hartmann8d-pipeline', 
                         command=['sh', '-c'], 
-                        args=["echo 'funcVal:' $(cat /tmp/feature_artifact/out.txt);".format(param_dict['feat_outdir'])], 
+                        # args=["echo 'functionValue:' $(cat /tmp/step3.txt); echo 'Total Duration:' {{inputs.parameters.priorStepsDuration}}; echo 'workflowDuration:' {{workflow.duration}} "], 
+                        args=["echo 'funcVal:' $(cat /tmp/step2.txt);"], 
+                        volume_mounts=[VolumeMount(name="workdir", mount_path="/tmp")]
                     ),   
                 ),
             ]
@@ -172,58 +161,53 @@ def define_workflow(param_dict, workflow_name):
     )
     
     return manifest
-  
 
 
-def submit_rf_workflow(param_dict, refresh_window):
+def brh8d_cost(x1, x2, x3, x4):
+    return
+
+def submit_brh8d_workflow(params, refresh_window, cost_type=True, cache_time=''):
     
     
-    """
-    Part A: 
+    """ 
     Submit workflow Using same producedures following the same pattern as Argo SDK docs
     Note: api_instance.workflow_logs and api_instance.pod_logs are defunct [see: https://github.com/argoproj/argo-workflows/issues/7781#issuecomment-1094078152]
+
+    Then Monitor submitted worfklow & report if it's "succeeded" or "failed" 
+
+    Lastly, if it's succeeded, scrape the logs to get the pod information
     """
-
-    workflow_name = 'rforest-{0}-{1}{2}-{3}-{4}'.format( str(param_dict["max_df"]), str(param_dict["ngram_range"][0]), str(param_dict["ngram_range"][1]), \
-                                        str(param_dict["min_samples_leaf"]), str(param_dict["max_depth"]) )
-
-    manifest = define_workflow(param_dict, workflow_name)
     
+    
+
+    # 1. First Define Workflow Name based on input parameters
+    x1, x2, x3, x4, x5, x6, x7, x8 = params
+    workflow_name = 'branin-hartmamm-8d-{0}-{1}-{2}-{3}-{4}-{5}-{6}-{7}'.format(x1, x2, x3, x4, x5, x6, x7, x8)
+    
+    # 2. Then Create the Manifest
+    manifest = define_workflow(x1, x2, x3, x4, x5, x6, x7, x8, workflow_name, cache_time)
+    
+    # 3. Configure API instance and submit the Manifest there via HTTP request    
     configuration = argo_workflows.Configuration(host="https://127.0.0.1:2746", ssl_ca_cert=None) 
     configuration.verify_ssl = False # notice how switch set ssl off here, since there is no parameter for this in the Configuration class https://github.com/argoproj/argo-workflows/blob/master/sdks/python/client/argo_workflows/configuration.py
-
     api_client = argo_workflows.ApiClient(configuration)
     api_instance = workflow_service_api.WorkflowServiceApi(api_client)
     begin_time =  time.time()
-    try:
-        api_response = api_instance.create_workflow( 
-            namespace='argo',
-            body=IoArgoprojWorkflowV1alpha1WorkflowCreateRequest(workflow=manifest),
-            _check_return_type=False)
-    except Exception as e:
-        refresh_window = 1 # just check the status of the workflow after 1 sec since its been run before
-        print("\t\t[TuunV2-WSS] ~ Either Workflow Already Exists (Using Previous Values) or the below error applies.")
-        print("\n\n[TuunV2-WSS] **ERROR** ",e, "\n\n") 
-
-    # pprint(api_response) # pretty print yaml/manifest which gets submitted [just for debugging]
-
+    api_response = api_instance.create_workflow( 
+        namespace='argo',
+        body=IoArgoprojWorkflowV1alpha1WorkflowCreateRequest(workflow=manifest),
+        _check_return_type=False) 
     url = 'https://localhost:2746/api/v1/workflows/argo/' + workflow_name
 
 
-    """
-    Part B: Monitor submitted worfklow & report if it's "succeeded" or "failed" 
-    """
+    # 4. Monitor submitted worfklow & report if it's "succeeded" or "failed" 
     workflow_final_state = monitor_workflow(url, refresh_window) 
     pythonDuration  = time.time() - begin_time
     print("\t\t\t\t[TuunV2-WSS] --> Final Workflow State == ", workflow_final_state)
      
  
      
-    """
-    Part C: Scrape workflow logs via Kubernetes Python Client  
-    Return the obj function value, Cost, etc
-    """ 
-
+    # 5. Scrape workflow logs via Kubernetes Python Client  Return the obj function value, Cost, etc
     # Get pod name corresponding to the last workflow step (the pod whose logs we place the return values within)
     url = 'https://localhost:2746/api/v1/workflows/argo/' + workflow_name
     response = requests.get(url=url, verify=False); response_dict = response.json() 
@@ -231,16 +215,16 @@ def submit_rf_workflow(param_dict, refresh_window):
     leaf_node_name = response_dict['status']['nodes'][workflow_name]['outboundNodes'] # Among `response_dict['status']['nodes'].keys())`, the key which is exactly the same as workflow_name is our root node workflow tree
     if len(leaf_node_name) > 1:
         raise ValueError("\t\t[TuunV2-WSS] ~ Whoops! Looks like There's more than 1 leaf ")
-
     wf_time, pod_total, sg_total, pod_runtimes_list = calculate_duration(leaf_node_name[0], url, workflow_name) # Used this for testing
-
     log_name = response_dict['status']['nodes'][leaf_node_name[0]]['outputs']['artifacts'][0]['s3']['key']
     func_val = read_pod_logs_via_k8s(log_name.split('/')[1])
     # print_stepgroups_pods_duration(leaf_node_name[0], url, workflow_name) # Used this for testing
-        
     print("\t\t\t\t[TuunV2-WSS] ++> F-val:", str(func_val)+"; Total WF Time:", str(wf_time)+"s; Pod total time:", str(pod_total)+"s; Pod-wise times (seconds):", str(pod_runtimes_list) )
-    return func_val, wf_time, pod_total, sg_total, pod_runtimes_list
-     
+    
+    if cost_type==True:
+        return func_val, wf_time, pod_total, sg_total, pod_runtimes_list
+    else:
+        return func_val 
    
 
 
@@ -248,16 +232,15 @@ if __name__ == '__main__':
     """
     This if statements allows us to run code that won't get run,
     if we import our functions defined within this file, from another python file 
-    """ 
+    """
+    submit_brh8d_workflow([1, 1, 2, 0.5, 1.5, 1, 0.2, 0.2], refresh_window=5, cost_type=True, cache_time='5m')
 
-    param_dict = {"max_df": 0.9, "ngram_range": [1,2],   # preprocessing
-    "min_samples_leaf": 2, "max_depth": 2000, "feat_outdir": "output_feats_dir"  # training  
-    } 
-    
-    param_dict["feat_outdir"] += str(param_dict["max_df"])+'_'+str(param_dict["ngram_range"][0])+str(param_dict["ngram_range"][1])+'_'+str(param_dict["min_samples_leaf"])+'_'+str(param_dict["max_depth"])
-    
-    submit_rf_workflow(param_dict, refresh_window=10)
-  
+
+    # pprint(test_return_workflow('sdk-memoize-multistep-7v4lm'))
+    # pprint(test_pod_logs('sdk-memoize-multistep-7v4lm','sdk-memoize-multistep-7v4lm-template3-1491687607'))
+    # val  = test_workflow_logs('sdk-memoize-multistep-7v4lm')
+    # print(type(val))
+
 
  
  
